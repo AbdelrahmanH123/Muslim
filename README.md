@@ -66,16 +66,31 @@ not acceptable here, so the rules are:
 | Hadith with grading | Sunnah.com API, open hadith datasets (Bukhari, Muslim, the Sunan, etc.) |
 | Duas & adhkar | Hisn al-Muslim (Fortress of the Muslim) |
 
+## Platforms & languages
+- **Android app** and **website**, built from one codebase (React Native + Expo, which also builds for the web)
+- **English and Arabic** from day one, including right-to-left layout for Arabic
+
+## Cost: free to run
+
+| Part | How it stays free |
+|---|---|
+| Quran / Hadith / Dua library, search, favorites | No AI needed. The library ships inside the app as a local database |
+| Smart (meaning-based) search | A small open-source embedding model run once, at build time; the results ship with the app |
+| AI chat & "Is this real?" | Open models only (Qwen, Gemma, ALLaM) running on **Ollama** or on the user's device; no paid API |
+| Speech to text | The phone's or browser's built-in speech recognition, or Whisper (open source) |
+| Website hosting | Free static hosting (GitHub Pages or Cloudflare Pages) |
+| Android | Free APK download; the Google Play listing is optional ($25 one-time) |
+
+The AI layer can be swapped out, so a paid model can be plugged in later if it's ever worth it.
+
 ## Proposed architecture
 
 ```
-Mobile app (React Native / Expo)
+Android app + website (React Native / Expo, EN + AR)
         │
-        ▼
-Backend API ── Postgres + pgvector (Quran, hadith, duas, tafsir + embeddings)
-        │
-        ├── Search: keyword + semantic (vector) search, topic tags
-        ├── AI chat: Claude API with a "search_library" tool;
+        ├── Local library DB (SQLite): Quran, hadith, duas, tafsir + embeddings
+        ├── Search: keyword + semantic search, topic tags (no AI, no server)
+        ├── AI chat: free open model (Ollama / on-device) with a "search_library" tool;
         │            the model may only cite records returned by the tool,
         │            and each citation is checked against the DB before display
         └── Verify: speech-to-text → claim extraction → library search → verdict
