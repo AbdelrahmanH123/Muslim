@@ -1,0 +1,158 @@
+// Curated topics. Each entry only points to records in the library (ayah numbers, Hisn al-Muslim chapters);
+// the text itself is always shown from the source data.
+export type Topic = {
+  id: string;
+  icon: string;
+  en: string;
+  ar: string;
+  ayat: [surah: number, from: number, to?: number][];
+  hisn: number[]; // chapter ids in hisn.json
+  query: string; // used for "search the library for this topic"
+};
+
+export const TOPICS: Topic[] = [
+  {
+    id: 'rizq',
+    icon: '🌾',
+    en: 'Provision (rizq) & wealth',
+    ar: 'الرزق',
+    ayat: [[65, 2, 3], [71, 10, 12], [11, 6], [28, 24]],
+    hisn: [42, 130],
+    query: 'رزق',
+  },
+  {
+    id: 'debt',
+    icon: '💳',
+    en: 'Debt',
+    ar: 'الدَّين',
+    ayat: [[2, 280]],
+    hisn: [42, 92],
+    query: 'debt',
+  },
+  {
+    id: 'anxiety',
+    icon: '🤲',
+    en: 'Anxiety, worry & grief',
+    ar: 'الهم والحزن والقلق',
+    ayat: [[13, 28], [94, 5, 6], [2, 286], [21, 87, 88]],
+    hisn: [35, 36, 44, 47, 31],
+    query: 'grief distress',
+  },
+  {
+    id: 'health',
+    icon: '🩺',
+    en: 'Health & illness',
+    ar: 'الصحة والمرض',
+    ayat: [[26, 80], [21, 83, 84], [17, 82]],
+    hisn: [50, 51, 52, 125],
+    query: 'شفاء',
+  },
+  {
+    id: 'protection',
+    icon: '🛡️',
+    en: 'Protection (evil eye, harm, shaytan)',
+    ar: 'التحصين والحفظ',
+    ayat: [[2, 255], [113, 1, 5], [114, 1, 6]],
+    hisn: [28, 29, 46, 49, 126, 129],
+    query: 'أعوذ',
+  },
+  {
+    id: 'forgiveness',
+    icon: '💧',
+    en: 'Forgiveness & repentance',
+    ar: 'الاستغفار والتوبة',
+    ayat: [[39, 53], [3, 135], [71, 10]],
+    hisn: [45, 130],
+    query: 'forgive',
+  },
+  {
+    id: 'knowledge',
+    icon: '📖',
+    en: 'Knowledge, study & exams',
+    ar: 'العلم والدراسة',
+    ayat: [[20, 114], [20, 25, 28]],
+    hisn: [44],
+    query: 'knowledge',
+  },
+  {
+    id: 'family',
+    icon: '👨‍👩‍👧',
+    en: 'Family, marriage & children',
+    ar: 'الأسرة والزواج والأولاد',
+    ayat: [[25, 74], [17, 24], [14, 40, 41], [3, 38]],
+    hisn: [80, 81, 82, 48, 49],
+    query: 'children',
+  },
+  {
+    id: 'decisions',
+    icon: '🧭',
+    en: 'Decisions & difficult matters',
+    ar: 'الاستخارة والأمور الصعبة',
+    ayat: [[65, 3]],
+    hisn: [27, 44],
+    query: 'استخارة',
+  },
+  {
+    id: 'morning',
+    icon: '🌅',
+    en: 'Morning & evening adhkar',
+    ar: 'أذكار الصباح والمساء',
+    ayat: [[2, 255]],
+    hisn: [28],
+    query: 'أصبحنا',
+  },
+  {
+    id: 'sleep',
+    icon: '🌙',
+    en: 'Sleep & night',
+    ar: 'النوم والليل',
+    ayat: [[2, 285, 286]],
+    hisn: [29, 30, 31, 32, 2],
+    query: 'sleep',
+  },
+  {
+    id: 'travel',
+    icon: '✈️',
+    en: 'Travel',
+    ar: 'السفر',
+    ayat: [[43, 13, 14]],
+    hisn: [96, 97, 98, 101, 102, 103, 105, 106],
+    query: 'travel',
+  },
+  {
+    id: 'calamity',
+    icon: '🕊️',
+    en: 'Calamity, loss & death',
+    ar: 'المصيبة والموت',
+    ayat: [[2, 155, 157]],
+    hisn: [54, 55, 56, 58, 60, 61],
+    query: 'مصيبة',
+  },
+  {
+    id: 'anger',
+    icon: '🔥',
+    en: 'Anger',
+    ar: 'الغضب',
+    ayat: [[3, 134]],
+    hisn: [83],
+    query: 'anger',
+  },
+  {
+    id: 'prayer',
+    icon: '🕌',
+    en: 'Prayer (salah)',
+    ar: 'الصلاة',
+    ayat: [[2, 238], [29, 45]],
+    hisn: [16, 17, 18, 19, 20, 21, 23, 24, 25, 26],
+    query: 'prayer',
+  },
+  {
+    id: 'rain',
+    icon: '🌧️',
+    en: 'Rain & weather',
+    ar: 'المطر والريح',
+    ayat: [[71, 10, 11]],
+    hisn: [62, 63, 64, 65, 66, 67],
+    query: 'rain',
+  },
+];

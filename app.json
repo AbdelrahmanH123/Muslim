@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Muslim",
+    "slug": "muslim",
+    "version": "0.1.0",
+    "scheme": "muslim",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.abdelrahmanh123.muslim",
+      "adaptiveIcon": {
+        "backgroundColor": "#1E6B52",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "name": "Muslim — Quran, Hadith & Duas"
+    },
+    "experiments": {
+      "baseUrl": "/Muslim"
+    },
+    "extra": {
+      "dataUrl": "https://abdelrahmanh123.github.io/Muslim/data"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
+  }
+}

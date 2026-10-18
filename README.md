@@ -1,105 +1,92 @@
-# Muslim — one app for Quran, Hadith and Dua, with sources you can trust
+# Muslim — Quran, Hadith & Duas in one place, with sources you can trust
 
-## The problem
-
-When a sheikh says "recite this for rizq" or "say this dua for healing", checking it
-means searching many websites, getting different answers, and often no clear
-source. This app puts everything in one place: an AI assistant, search across the
-Quran, Hadith, Duas and Tafsir, and a proper citation for every answer.
+An Android app and website (English + Arabic) where you can search the Quran,
+the major hadith collections and Hisn al-Muslim, ask an AI assistant, and check
+things you heard in a lecture or video. Every answer shows its real source.
+**It is completely free to run.**
 
 ## Core principle: the AI never makes up a source
 
-AI chatbots can invent hadith, mix up narrators, or quote ayat wrongly. That is
-not acceptable here, so the rules are:
+1. **Answers come from the app's own library, not from the AI's memory.** The AI
+   gets numbered sources from the library and must cite them like `[1]`.
+2. **Citations are checked.** Any citation number that doesn't match a real
+   library record is removed, and answers without citations are flagged.
+3. **Hadith gradings are always shown** (Sahih / Hasan / Da'if / Mawdu'), with
+   the scholar who graded each one.
+4. **If nothing is found, the app says so** instead of guessing.
+5. **It is not a mufti.** Personal rulings are referred to qualified scholars.
 
-1. **Answers come from a verified library, not from the AI's memory.** The AI
-   searches the app's own database of Quran text, hadith collections, dua books
-   and tafsir, then writes an answer using only what it found.
-2. **Every claim links to a real record**: surah and ayah number, or hadith
-   collection, book and number, plus the narrator (e.g. "narrated by Abu
-   Hurairah, Sahih al-Bukhari 6405").
-3. **Hadith grading is always shown** (Sahih / Hasan / Da'if / Mawdu'), along
-   with who graded it.
-4. **If nothing is found, the app says so.** It shows "no authentic source found"
-   and never guesses.
-5. **It is not a mufti.** For fiqh rulings and personal fatwas, it points the
-   user to qualified scholars.
+## What works today
 
-## Features
-
-### MVP (version 1)
-- **Search** across the Quran (Arabic, translation and transliteration), Hadith,
-  Duas and Adhkar. Search works by keyword or by topic, e.g. *rizq*, *health*,
-  *anxiety*, *travel*, *exams*, *debt*, *protection*.
-- **Topic collections**: curated pages such as "Duas for rizq", each entry with
-  its source and grading.
-- **AI chat**: ask a question in plain English or Arabic and get an answer with
-  citations. Tap a citation to open the full text.
-- **Favorites**: save ayat, hadith and duas into personal folders.
-
-### Version 2: "Is this real?" (verify a claim)
-- Record audio or paste a link to a clip, or type what the sheikh said.
-- The app transcribes the audio, pulls out the claim ("say X 100 times for Y"),
-  and searches the library.
-- It returns one of these results:
-  - ✅ **Found, authentic**: shows the source and grading, with a button to add
-    it to favorites.
-  - ⚠️ **Found, but weak or fabricated**: shows the grading and who graded it.
-  - ❓ **Not found**: no source found in the library; ask a scholar.
-  - 🔀 **Partly correct**: the dua is real, but the added reward or number of
-    repetitions isn't in the source.
-
-### Later ideas
-- Tafsir side by side (Ibn Kathir, al-Sa'di, al-Tabari, and others)
-- Audio recitation for each ayah and dua
-- Daily adhkar reminders (morning and evening) and a Hisn al-Muslim reader
-- Prayer times and qibla
-- Offline mode for the core library
-- Community "claims checked" feed, with the most-asked claims and their verdicts
-
-## Data sources (licensing to be confirmed before shipping)
-
-| Content | Candidate sources |
+| Screen | What it does |
 |---|---|
-| Quran text | Tanzil.net (Uthmani/Simple text) |
-| Translations, tafsir, audio | Quran.com API (Quran Foundation) |
-| Hadith with grading | Sunnah.com API, open hadith datasets (Bukhari, Muslim, the Sunan, etc.) |
-| Duas & adhkar | Hisn al-Muslim (Fortress of the Muslim) |
+| 🔍 **Search** | Searches the Quran, Hisn al-Muslim and 9 hadith collections in English or Arabic, ignoring diacritics. You can also type a reference like `2:255` or `Bukhari 6405`. |
+| 📚 **Topics** | Rizq, debt, anxiety, health, protection, forgiveness, exams, family, travel, sleep and more. Each topic links to the relevant Hisn al-Muslim chapters and ayat. |
+| 💬 **Ask** | AI chat that answers only from library sources, with checked citations. Without AI it still shows the matching sources. |
+| ✅ **Verify** | Paste or speak what a sheikh said. The result is **Found / Weak or fabricated / Partly matches / No source found**, with the closest matches. The microphone works in Chrome and Edge on the website. |
+| ⭐ **Favorites** | Save any ayah, hadith or dua into folders, e.g. "Duas for rizq". |
+| 📖 **Readers** | Full surah reader with Tafsir al-Muyassar and al-Jalalayn, a hadith page with book, narrator and every grading, and Hisn al-Muslim chapters with their references. |
+| ⚙︎ **Settings** | English / العربية (right-to-left), and the free AI setup. |
 
-## Platforms & languages
-- **Android app** and **website**, built from one codebase (React Native + Expo, which also builds for the web)
-- **English and Arabic** from day one, including right-to-left layout for Arabic
+## The library (all free, openly published)
 
-## Cost: free to run
-
-| Part | How it stays free |
+| Content | Source |
 |---|---|
-| Quran / Hadith / Dua library, search, favorites | No AI needed. The library ships inside the app as a local database |
-| Smart (meaning-based) search | A small open-source embedding model run once, at build time; the results ship with the app |
-| AI chat & "Is this real?" | Open models only (Qwen, Gemma, ALLaM) running on **Ollama** or on the user's device; no paid API |
-| Speech to text | The phone's or browser's built-in speech recognition, or Whisper (open source) |
-| Website hosting | Free static hosting (GitHub Pages or Cloudflare Pages) |
-| Android | Free APK download; the Google Play listing is optional ($25 one-time) |
+| Quran (Uthmani, Hafs) | Tanzil Project, via [fawazahmed0/quran-api](https://github.com/fawazahmed0/quran-api) |
+| English translation | Rowwad Translation Center ([quranenc.com](https://quranenc.com/en/browse/english_rwwad)) |
+| Tafsir | Tafsir al-Muyassar (King Fahd Complex), Tafsir al-Jalalayn |
+| Hadith + gradings | Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa'i, Ibn Majah, Muwatta Malik, Nawawi 40, Hadith Qudsi, via [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api) |
+| Hisn al-Muslim (Arabic, with takhrij) | [rn0x/hisn_almuslim_json](https://github.com/rn0x/hisn_almuslim_json) |
 
-The AI layer can be swapped out, so a paid model can be plugged in later if it's ever worth it.
+`npm run data` downloads all of these into `public/data/` (about 60 MB). The
+data is generated, not committed.
 
-## Proposed architecture
+## Cost
 
-```
-Android app + website (React Native / Expo, EN + AR)
-        │
-        ├── Local library DB (SQLite): Quran, hadith, duas, tafsir + embeddings
-        ├── Search: keyword + semantic search, topic tags (no AI, no server)
-        ├── AI chat: free open model (Ollama / on-device) with a "search_library" tool;
-        │            the model may only cite records returned by the tool,
-        │            and each citation is checked against the DB before display
-        └── Verify: speech-to-text → claim extraction → library search → verdict
+| Part | Cost |
+|---|---|
+| Library, search, favorites | Free: static files, no server |
+| AI | Free: [Ollama](https://ollama.com) running on your own computer. Any OpenAI-compatible server (e.g. LM Studio) also works. |
+| Speech to text | Free: the browser's built-in speech recognition, or the Android keyboard's microphone |
+| Website hosting | Free: GitHub Pages (`.github/workflows/web.yml`) |
+| Android APK | Free: built on GitHub Actions (`.github/workflows/android.yml`). The Google Play listing is optional ($25 one-time). |
+
+## Run it on your computer
+
+```bash
+npm install
+npm run data          # download the Quran / hadith / dua library
+npm run web           # open the website at the address it prints
 ```
 
-## Roadmap
-1. Load the Quran, the major hadith collections and Hisn al-Muslim into the
-   database, with topic tags
-2. Search screen, detail screens and favorites
-3. AI chat with checked citations
-4. The "Is this real?" verification flow
-5. Reminders, audio, offline mode
+### Turn on the free AI (optional)
+
+1. Install Ollama: https://ollama.com/download
+2. Download a model: `ollama pull qwen2.5:3b` (about 2 GB). Use `qwen2.5:7b` if
+   your computer has 16 GB of RAM or more; it gives better answers.
+3. Let the website talk to it: start Ollama with `OLLAMA_ORIGINS=*`
+   - Windows (PowerShell): `$env:OLLAMA_ORIGINS="*"; ollama serve`
+   - Mac/Linux: `OLLAMA_ORIGINS="*" ollama serve`
+4. In the app: ⚙︎ Settings → Test connection.
+
+To use the AI from your phone, start Ollama with `OLLAMA_HOST=0.0.0.0` as well.
+Then put your computer's IP address in Settings, e.g. `http://192.168.1.20:11434`.
+
+## Project layout
+
+```
+scripts/build-data.mjs   downloads and packs the library into public/data
+src/app/                 screens (Expo Router)
+src/lib/search.ts        Arabic/English search over the library
+src/lib/ai.ts            Ollama/OpenAI-compatible client, retrieval, citation checking, verify
+src/lib/grades.ts        hadith grading summary
+src/lib/topics.ts        curated topics (references only; text always comes from the data)
+src/lib/i18n.ts          English + Arabic strings
+```
+
+## Next ideas
+- Keep the library on the phone after the first download (offline mode)
+- English translation of Hisn al-Muslim
+- Meaning-based (semantic) search
+- Recitation audio, morning/evening reminders, prayer times
+- Whisper speech-to-text for recorded clips
