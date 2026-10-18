@@ -2,22 +2,32 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { favoriteFromHit } from '../../components/HitCard';
-import { Arabic, Button, C, Card, Chip, English, ErrorBox, Loading, Row, SaveButton, T, styles } from '../../components/ui';
+import { Arabic, Button, C, Card, Chip, English, ErrorBox, Loading, Row, SaveButton, ShareButton, T, styles } from '../../components/ui';
+import { citationText } from '../../lib/format';
 import { ayahIndex, loadQuran, loadTafsir, TAFSIRS, type Ayah, type Quran } from '../../lib/data';
 import type { Hit } from '../../lib/search';
 import { useStore } from '../../lib/store';
 
 export default function SurahScreen() {
-  const params = useLocalSearchParams<{ surah: string; ayah?: string }>();
+  const params = useLocalSearchParams<{ surah: string; ayah?: string; read?: string }>();
   const s = Number(params.surah);
   const focus = params.ayah ? Number(params.ayah) : null;
-  const { t, lang } = useStore();
+  const { t, lang, setLastRead } = useStore();
   const [quran, setQuran] = useState<Quran | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const [showAll, setShowAll] = useState(!focus);
+  const [showAll, setShowAll] = useState(!focus || params.read === '1');
   // Where the list starts: the ayah the user came from (reading continues from there), or the beginning.
   const [from, setFrom] = useState(focus ?? 1);
   const list = useRef<FlatList<Ayah>>(null);
+  // Remember the first ayah on screen, for "Continue reading".
+  // FlatList requires this handler to stay the same for the list's lifetime, so it is created once.
+  const [onViewable] = useState(() => ({ viewableItems }: { viewableItems: { item: Ayah }[] }) => {
+    const first = viewableItems[0]?.item;
+    if (first) setLastRead({ s: first.s, a: first.a });
+  });
+  useEffect(() => {
+    if (s) setLastRead({ s, a: focus ?? 1 });
+  }, [s, focus, setLastRead]);
 
   useEffect(() => {
     loadQuran().then(setQuran, setError);
@@ -42,6 +52,8 @@ export default function SurahScreen() {
         contentContainerStyle={styles.inner}
         initialNumToRender={12}
         windowSize={11}
+        onViewableItemsChanged={onViewable}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         ListHeaderComponent={
           <View style={{ gap: 12 }}>
             <Card style={{ alignItems: 'center' }}>
@@ -98,6 +110,7 @@ function AyahCard({ ayah, quran, highlight }: { ayah: Ayah; quran: Quran; highli
             title={tafsirId ? t('hideTafsir') : t('showTafsir')}
             onPress={() => setTafsirId(tafsirId ? null : TAFSIRS[0].id)}
           />
+          <ShareButton text={() => citationText(hit, lang)} />
           <SaveButton item={favoriteFromHit(hit)} />
         </Row>
       </Row>

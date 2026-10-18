@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 import { collectionInfo } from '../lib/data';
-import { hitArabic, hitEnglish, hitGrade, hitHref, hitTitle } from '../lib/format';
+import { citationText, hitArabic, hitEnglish, hitGrade, hitHref, hitTitle } from '../lib/format';
 import type { Hit } from '../lib/search';
 import { useStore, type Favorite } from '../lib/store';
 import { snippet } from '../lib/text';
-import { Arabic, Badge, C, Card, English, GradeBadge, Row, SaveButton, T } from './ui';
+import { Arabic, Badge, C, Card, English, GradeBadge, Row, SaveButton, ShareButton, T } from './ui';
 
 export function favoriteFromHit(hit: Hit): Omit<Favorite, 'added' | 'folder'> {
   const source =
@@ -27,7 +27,10 @@ export function HitCard({ hit, query = '', number, full }: { hit: Hit; query?: s
             {hitTitle(hit, lang)}
           </T>
         </Pressable>
-        <SaveButton item={favoriteFromHit(hit)} />
+        <Row style={{ flexWrap: 'nowrap' }}>
+          <ShareButton text={() => citationText(hit, lang)} />
+          <SaveButton item={favoriteFromHit(hit)} />
+        </Row>
       </Row>
       <Pressable style={{ gap: 8 }} onPress={() => router.push(hitHref(hit) as never)}>
       <Row>

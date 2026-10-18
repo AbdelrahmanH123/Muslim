@@ -1,7 +1,10 @@
 import { useState, type ReactNode } from 'react';
+import * as Clipboard from 'expo-clipboard';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
+  Share,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -215,6 +218,32 @@ export function SaveButton({ item }: { item: Omit<Favorite, 'added' | 'folder'> 
       </Modal>
     </>
   );
+}
+
+/** Shares (phone share sheet) or copies (browser) a text that always includes its source. */
+export function ShareButton({ text }: { text: () => string }) {
+  const { t } = useStore();
+  const [copied, setCopied] = useState(false);
+  const onPress = async () => {
+    const message = text();
+    try {
+      if (Platform.OS !== 'web') {
+        await Share.share({ message });
+        return;
+      }
+      const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { share?: (d: { text: string }) => Promise<void> }) : null;
+      if (nav?.share) {
+        await nav.share({ text: message });
+        return;
+      }
+    } catch {
+      // Share sheet dismissed or unavailable: fall back to copying.
+    }
+    await Clipboard.setStringAsync(message);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return <Button small kind="secondary" title={copied ? `✓ ${t('copied')}` : `↗ ${t('share')}`} onPress={onPress} />;
 }
 
 export function LinkCard({ href, children }: { href: string; children: ReactNode }) {

@@ -1,6 +1,6 @@
-import { LinkCard, Row, Screen, T } from '../../components/ui';
-import { useStore } from '../../lib/store';
-import { TOPICS } from '../../lib/topics';
+import { LinkCard, Row, Screen, T } from '../components/ui';
+import { useStore } from '../lib/store';
+import { TOPICS } from '../lib/topics';
 
 export default function TopicsScreen() {
   const { t, lang } = useStore();

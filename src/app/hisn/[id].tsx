@@ -1,7 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { favoriteFromHit } from '../../components/HitCard';
-import { Arabic, C, Card, ErrorBox, Loading, Row, SaveButton, Screen, T } from '../../components/ui';
+import { Arabic, C, Card, ErrorBox, Loading, Row, SaveButton, Screen, ShareButton, T } from '../../components/ui';
+import { citationText } from '../../lib/format';
 import { loadHisn, type Hisn } from '../../lib/data';
 import { useStore } from '../../lib/store';
 
@@ -34,7 +35,10 @@ export default function HisnScreen() {
         <Card key={i} style={i === focus ? { borderColor: C.gold, borderWidth: 2, backgroundColor: C.goldSoft } : undefined}>
           <Row style={{ justifyContent: 'space-between' }}>
             <T bold style={{ color: C.primary }}>{i + 1}</T>
-            <SaveButton item={favoriteFromHit({ kind: 'hisn', key: `d:${chapter.id}:${i}`, score: 1, chapter, index: i })} />
+            <Row style={{ flexWrap: 'nowrap' }}>
+              <ShareButton text={() => citationText({ kind: 'hisn', key: `d:${chapter.id}:${i}`, score: 1, chapter, index: i }, lang)} />
+              <SaveButton item={favoriteFromHit({ kind: 'hisn', key: `d:${chapter.id}:${i}`, score: 1, chapter, index: i })} />
+            </Row>
           </Row>
           <Arabic size={23}>{text}</Arabic>
         </Card>

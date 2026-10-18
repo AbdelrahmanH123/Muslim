@@ -18,12 +18,15 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "output": "single",
-      "name": "Muslim — Quran, Hadith & Duas"
+      "name": "Muslim \u2014 Quran, Hadith & Duas"
     },
     "experiments": {
       "baseUrl": "/Muslim"
@@ -40,6 +43,12 @@
           "android": {
             "usesCleartextTraffic": true
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Your location is used only on this device to calculate prayer times and the Qibla direction."
         }
       ]
     ]

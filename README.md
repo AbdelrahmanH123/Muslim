@@ -24,6 +24,12 @@ things you heard in a lecture or video. Every answer shows its real source.
 | 📚 **Topics** | Rizq, debt, anxiety, health, protection, forgiveness, exams, family, travel, sleep and more. Each topic links to the relevant Hisn al-Muslim chapters and ayat. |
 | 💬 **Ask** | AI chat that answers only from library sources, with checked citations. Without AI it still shows the matching sources. |
 | ✅ **Verify** | Paste or speak what a sheikh said. The result is **Found / Weak or fabricated / Partly matches / No source found**, with the closest matches. The microphone works in Chrome and Edge on the website. |
+| 🏠 **Today** | Next prayer time, an ayah and a hadith of the day (from An-Nawawi's 40 and Hadith Qudsi), continue reading, and shortcuts. |
+| 📖 **Quran** | All 114 surahs, searchable by name or number; reading continues where you stopped. |
+| 🕌 **Prayer times & Qibla** | Calculated on the device (free, works offline) from your location or typed coordinates; 11 calculation methods, Hanafi or standard Asr. |
+| 🌅 **Adhkar** | Morning, evening and before-sleep adhkar from Hisn al-Muslim as a checklist that resets daily. |
+| 📿 **Tasbih** | Tap counter with targets (33/99/100) that vibrates at the target and remembers your count. |
+| ↗ **Share with source** | Every ayah, hadith and dua is shared or copied together with its reference, narrator and grading. |
 | ⭐ **Favorites** | Save any ayah, hadith or dua into folders, e.g. "Duas for rizq". |
 | 📖 **Readers** | Full surah reader with Tafsir al-Muyassar and al-Jalalayn, a hadith page with book, narrator and every grading, and Hisn al-Muslim chapters with their references. |
 | ⚙︎ **Settings** | English / العربية (right-to-left), and the free AI setup. |

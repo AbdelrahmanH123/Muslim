@@ -2,9 +2,9 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { favoriteFromHit } from '../../../components/HitCard';
-import { Arabic, C, Card, English, ErrorBox, GradeBadge, Loading, Row, SaveButton, Screen, T } from '../../../components/ui';
+import { Arabic, C, Card, English, ErrorBox, GradeBadge, Loading, Row, SaveButton, Screen, ShareButton, T } from '../../../components/ui';
 import { loadCollection, type Collection } from '../../../lib/data';
-import { hadithRef } from '../../../lib/format';
+import { citationText, hadithRef } from '../../../lib/format';
 import { hadithGrade } from '../../../lib/grades';
 import { useStore } from '../../../lib/store';
 
@@ -32,7 +32,10 @@ export default function HadithScreen() {
       <Card>
         <Row style={{ justifyContent: 'space-between' }}>
           <T bold size={18} style={{ color: C.primary, flexShrink: 1 }}>{title}</T>
-          <SaveButton item={favoriteFromHit({ kind: 'hadith', key: `h:${col}:${h.n}`, score: 1, hadith: h })} />
+          <Row style={{ flexWrap: 'nowrap' }}>
+            <ShareButton text={() => citationText({ kind: 'hadith', key: `h:${col}:${h.n}`, score: 1, hadith: h }, lang)} />
+            <SaveButton item={favoriteFromHit({ kind: 'hadith', key: `h:${col}:${h.n}`, score: 1, hadith: h })} />
+          </Row>
         </Row>
         {book ? (
           <T muted>

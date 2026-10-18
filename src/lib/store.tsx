@@ -3,6 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Lang } from './data';
 import { STRINGS, type StringKey } from './i18n';
+import { usePersisted } from './persist';
+import { DEFAULT_PRAYER, type PrayerSettings } from './prayer';
+
+export type LastRead = { s: number; a: number } | null;
 
 export type AiSettings = {
   provider: 'ollama' | 'openai';
@@ -43,6 +47,10 @@ type Store = {
   addFolder: (name: string) => void;
   removeFolder: (name: string) => void;
   isFavorite: (key: string) => boolean;
+  prayer: PrayerSettings;
+  setPrayer: (p: PrayerSettings) => void;
+  lastRead: LastRead;
+  setLastRead: (r: LastRead) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -67,6 +75,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [ai, setAiState] = useState<AiSettings>(DEFAULT_AI);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [folders, setFolders] = useState<string[]>(DEFAULT_FOLDERS);
+  const [prayer, setPrayer] = usePersisted<PrayerSettings>('prayer', DEFAULT_PRAYER);
+  const [lastRead, setLastRead] = usePersisted<LastRead>('lastRead', null);
 
   useEffect(() => {
     (async () => {
@@ -132,8 +142,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         updateFavs((prev) => prev.filter((x) => x.folder !== name));
       },
       isFavorite: (key) => favorites.some((x) => x.key === key),
+      prayer,
+      setPrayer,
+      lastRead,
+      setLastRead,
     }),
-    [ready, lang, setLang, t, ai, setAi, favorites, folders, updateFavs, updateFolders],
+    [ready, lang, setLang, t, ai, setAi, favorites, folders, updateFavs, updateFolders, prayer, setPrayer, lastRead, setLastRead],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

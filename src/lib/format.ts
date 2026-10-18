@@ -71,3 +71,16 @@ export function hitForPrompt(hit: Hit, n: number): string {
 }
 
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n) + '…' : s);
+
+/** Text for copying/sharing: the words, then exactly where they come from (and the grading for hadith). */
+export function citationText(hit: Hit, lang: Lang): string {
+  const parts = [hitArabic(hit), hitEnglish(hit)].filter(Boolean);
+  let source = hitTitle(hit, lang);
+  if (hit.kind === 'hadith') {
+    const g = hit.hadith.grades.map(([by, grade]) => `${grade} (${by})`).join('; ');
+    if (hit.hadith.narrator) source += ` — ${lang === 'ar' ? 'الراوي' : 'Narrated by'} ${hit.hadith.narrator}`;
+    if (g) source += `\n${lang === 'ar' ? 'الحكم' : 'Grading'}: ${g}`;
+  }
+  if (hit.kind === 'hisn' && hit.chapter.notes.length) source += `\n${hit.chapter.notes.join(' | ')}`;
+  return `${parts.join('\n\n')}\n\n— ${source}`;
+}

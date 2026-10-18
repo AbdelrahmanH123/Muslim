@@ -63,7 +63,7 @@ export default function TopicScreen() {
           ))}
         </>
       )}
-      <Button kind="secondary" title={t('relatedSearch')} onPress={() => router.push({ pathname: '/', params: { q: topic.query } })} />
+      <Button kind="secondary" title={t('relatedSearch')} onPress={() => router.push({ pathname: '/search', params: { q: topic.query } })} />
     </Screen>
   );
 }

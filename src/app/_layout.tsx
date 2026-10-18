@@ -37,6 +37,10 @@ function Root() {
         <Stack.Screen name="hadith/[col]/[num]" options={{ title: t('hadith') }} />
         <Stack.Screen name="hisn/[id]" options={{ title: t('hisn') }} />
         <Stack.Screen name="topic/[id]" options={{ title: t('tabTopics') }} />
+        <Stack.Screen name="topics" options={{ title: t('tabTopics') }} />
+        <Stack.Screen name="prayer" options={{ title: t('prayerTimes') }} />
+        <Stack.Screen name="adhkar" options={{ title: t('adhkar') }} />
+        <Stack.Screen name="tasbih" options={{ title: t('tasbih') }} />
       </Stack>
     </View>
   );

@@ -1,104 +1,96 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { HitCard } from '../../components/HitCard';
-import { Button, Chip, ErrorBox, Input, Loading, Row, Screen, T } from '../../components/ui';
-import { COLLECTIONS } from '../../lib/data';
-import { search, type Hit, type Source } from '../../lib/search';
+import { C, Card, Row, Screen, T } from '../../components/ui';
+import { ayahOfTheDay, hadithOfTheDay } from '../../lib/daily';
+import { formatTime, prayerTimes } from '../../lib/prayer';
+import type { Hit } from '../../lib/search';
 import { useStore } from '../../lib/store';
 
-type Filter = 'all' | Source;
-type Result = { key: string; hits: Hit[] | null; error: unknown };
-const PAGE = 20;
+function Tile({ icon, label, href }: { icon: string; label: string; href: string }) {
+  return (
+    <Pressable
+      onPress={() => router.push(href as never)}
+      style={({ pressed }) => ({
+        flexBasis: '47%',
+        flexGrow: 1,
+        backgroundColor: C.card,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: C.border,
+        padding: 14,
+        gap: 6,
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
+      <T size={26}>{icon}</T>
+      <T bold>{label}</T>
+    </Pressable>
+  );
+}
 
-export default function SearchScreen() {
-  const { t, lang } = useStore();
-  const params = useLocalSearchParams<{ q?: string }>();
-  const [query, setQuery] = useState(params.q ?? '');
-  const [submitted, setSubmitted] = useState(params.q ?? '');
-  const [paramSeen, setParamSeen] = useState(params.q);
-  const [filter, setFilter] = useState<Filter>('all');
-  const [cols, setCols] = useState<string[]>(COLLECTIONS.map((c) => c.id));
-  const [attempt, setAttempt] = useState(0);
-  const [result, setResult] = useState<Result | null>(null);
-  const [shown, setShown] = useState({ key: '', n: PAGE });
+export default function TodayScreen() {
+  const { t, lang, prayer, lastRead } = useStore();
+  const [ayah, setAyah] = useState<Hit | null>(null);
+  const [hadith, setHadith] = useState<Hit | null>(null);
+  const [now, setNow] = useState(() => new Date());
 
-  // A topic page can open this screen with ?q=…; adopt it when it changes.
-  if (params.q !== paramSeen) {
-    setParamSeen(params.q);
-    setQuery(params.q ?? '');
-    setSubmitted(params.q ?? '');
-  }
-
-  const key = JSON.stringify([submitted.trim(), filter, cols, attempt]);
   useEffect(() => {
-    if (!submitted.trim()) return;
-    let cancelled = false;
-    const sources: Source[] = filter === 'all' ? ['quran', 'hisn', 'hadith'] : [filter];
-    search(submitted, { sources, collections: cols, limit: 500 }).then(
-      (hits) => !cancelled && setResult({ key, hits, error: null }),
-      (error) => !cancelled && setResult({ key, hits: null, error }),
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [key, submitted, filter, cols]);
+    ayahOfTheDay().then(setAyah, () => {});
+    hadithOfTheDay().then(setHadith, () => {});
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const busy = !!submitted.trim() && result?.key !== key;
-  const current = result?.key === key ? result : null;
-  const limit = shown.key === key ? shown.n : PAGE;
-
-  const toggleCol = (id: string) =>
-    setCols((prev) => (prev.includes(id) ? (prev.length > 1 ? prev.filter((c) => c !== id) : prev) : [...prev, id]));
-  const submit = () => {
-    if (query.trim() === submitted.trim()) setAttempt((a) => a + 1);
-    setSubmitted(query);
-  };
+  const pt = prayerTimes(prayer, now);
+  const minutes = pt ? Math.max(0, Math.round((pt.nextTime.getTime() - now.getTime()) / 60000)) : 0;
 
   return (
     <Screen>
-      <Input
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t('searchPlaceholder')}
-        returnKeyType="search"
-        onSubmitEditing={submit}
-        autoFocus={!params.q}
-      />
-      <Row>
-        <Button title={t('tabSearch')} onPress={submit} disabled={busy || !query.trim()} />
-        <Chip label={t('filterAll')} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <Chip label={t('filterQuran')} active={filter === 'quran'} onPress={() => setFilter('quran')} />
-        <Chip label={t('filterDuas')} active={filter === 'hisn'} onPress={() => setFilter('hisn')} />
-        <Chip label={t('filterHadith')} active={filter === 'hadith'} onPress={() => setFilter('hadith')} />
-      </Row>
-      {(filter === 'all' || filter === 'hadith') && (
-        <Row>
-          <T muted size={13}>
-            {t('collectionsLabel')}:
-          </T>
-          {COLLECTIONS.map((c) => (
-            <Chip key={c.id} label={c.name[lang]} active={cols.includes(c.id)} onPress={() => toggleCol(c.id)} />
-          ))}
-        </Row>
-      )}
-      {!submitted.trim() && <T muted>{t('searchHint')}</T>}
-      {busy && <Loading label={t('loadingLibrary')} />}
-      {current?.error ? <ErrorBox error={current.error} onRetry={() => setAttempt((a) => a + 1)} /> : null}
-      {current?.hits && (
-        <>
-          <T muted>
-            {current.hits.length
-              ? t('results', { n: current.hits.length >= 500 ? '500+' : current.hits.length })
-              : t('noResults')}
-          </T>
-          {current.hits.slice(0, limit).map((h) => (
-            <HitCard key={h.key} hit={h} query={submitted} />
-          ))}
-          {limit < current.hits.length && (
-            <Button kind="secondary" title={t('showMore')} onPress={() => setShown({ key, n: limit + PAGE })} />
+      <Pressable onPress={() => router.push('/prayer')}>
+        <Card style={{ backgroundColor: C.primary, borderColor: C.primary }}>
+          {pt ? (
+            <>
+              <T style={{ color: '#E3F0EA' }}>{t('nextPrayer')}</T>
+              <T bold size={24} style={{ color: '#fff' }}>
+                {t(`prayer_${pt.next}`)} · {formatTime(pt.nextTime, lang)}
+              </T>
+              <T style={{ color: '#E3F0EA' }}>{t('inTime', { h: Math.floor(minutes / 60), m: minutes % 60 })}</T>
+            </>
+          ) : (
+            <>
+              <T bold size={18} style={{ color: '#fff' }}>🕌 {t('prayerTimes')}</T>
+              <T style={{ color: '#E3F0EA' }}>{t('setUpPrayer')}</T>
+            </>
           )}
-        </>
+        </Card>
+      </Pressable>
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        <Tile icon="🌅" label={t('adhkar')} href="/adhkar" />
+        <Tile icon="📿" label={t('tasbih')} href="/tasbih" />
+        <Tile icon="📚" label={t('tabTopics')} href="/topics" />
+        <Tile icon="🧭" label={t('qibla')} href="/prayer" />
+      </View>
+
+      {lastRead && (
+        <Pressable onPress={() => router.push(`/quran/${lastRead.s}?ayah=${lastRead.a}&read=1`)}>
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <T bold>📖 {t('continueReading')}</T>
+              <T muted>
+                {lastRead.s}:{lastRead.a}
+              </T>
+            </Row>
+          </Card>
+        </Pressable>
       )}
+
+      <T bold size={17}>{t('ayahOfTheDay')}</T>
+      {ayah ? <HitCard hit={ayah} full /> : <T muted>{t('loading')}</T>}
+      <T bold size={17}>{t('hadithOfTheDay')}</T>
+      {hadith ? <HitCard hit={hadith} full /> : <T muted>{t('loading')}</T>}
     </Screen>
   );
 }

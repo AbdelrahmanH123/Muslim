@@ -33,8 +33,9 @@ export default function TabsLayout() {
         ),
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabSearch'), tabBarIcon: icon('🔍') }} />
-      <Tabs.Screen name="topics" options={{ title: t('tabTopics'), tabBarIcon: icon('📚') }} />
+      <Tabs.Screen name="index" options={{ title: t('tabToday'), tabBarIcon: icon('🏠') }} />
+      <Tabs.Screen name="quran" options={{ title: t('quran'), tabBarLabel: t('tabQuran'), tabBarIcon: icon('📖') }} />
+      <Tabs.Screen name="search" options={{ title: t('tabSearch'), tabBarIcon: icon('🔍') }} />
       <Tabs.Screen name="ask" options={{ title: t('tabAsk'), tabBarIcon: icon('💬') }} />
       <Tabs.Screen name="verify" options={{ title: t('tabVerify'), tabBarIcon: icon('✅') }} />
       <Tabs.Screen name="favorites" options={{ title: t('tabFavorites'), tabBarIcon: icon('⭐') }} />
