@@ -1,3 +1,4 @@
 .cache/
 report.json
 search_report.json
+__pycache__/
