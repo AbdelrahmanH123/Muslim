@@ -151,9 +151,15 @@ const en = {
   apiKey: 'API key (only for OpenAI-compatible servers that need one)',
   save: 'Save',
   testConnection: 'Test connection',
+  aiUnreachable:
+    'Could not reach the AI on this address. Please check:\n' +
+    '1. Ollama is installed and running: open http://localhost:11434 in your browser, it should say "Ollama is running".\n' +
+    '2. Ollama allows this website. Windows: open PowerShell, run  setx OLLAMA_ORIGINS "*"  then quit Ollama (taskbar icon → Quit) and start it again. Mac: run  launchctl setenv OLLAMA_ORIGINS "*"  and restart Ollama.\n' +
+    '3. If the browser asks to allow access to apps/devices on your local network, choose Allow (you can change it in the site settings by the address bar).\n' +
+    '4. From a phone: use your computer\'s IP address instead of localhost, and also set OLLAMA_HOST to 0.0.0.0 the same way.',
   connectionOk: 'Connected ✓',
   aiHelp:
-    'Install Ollama (free) from ollama.com, then run: ollama pull qwen2.5:3b. For the website, start Ollama with OLLAMA_ORIGINS=* so the browser may talk to it. To use it from your phone, use your computer’s IP address (e.g. http://192.168.1.20:11434) and start Ollama with OLLAMA_HOST=0.0.0.0.',
+    'Install Ollama (free) from ollama.com, then run: ollama pull qwen2.5:3b. For the website, allow it once: on Windows run  setx OLLAMA_ORIGINS "*"  in PowerShell, then quit and restart Ollama. To use it from your phone, use your computer’s IP address (e.g. http://192.168.1.20:11434) and start Ollama with OLLAMA_HOST=0.0.0.0.',
   about: 'About & sources',
   aboutText:
     'Quran text: King Fahd Glorious Quran Printing Complex (Madinah Mushaf, Hafs). English translation: Rowwad Translation Center (quranenc.com). Tafsir al-Muyassar (King Fahd Complex) and Tafsir al-Jalalayn. Hadith: fawazahmed0/hadith-api, with numbers and gradings checked against Sunnah.com. Hisn al-Muslim by Sa‘id ibn ‘Ali ibn Wahf al-Qahtani. The library is regularly checked against these sources (see docs/VERIFICATION.md). This app is a study aid, not a source of fatwa.',
@@ -311,6 +317,12 @@ const ar: Partial<Record<StringKey, string>> = {
   apiKey: 'مفتاح API (فقط للخوادم المتوافقة مع OpenAI التي تطلبه)',
   save: 'حفظ',
   testConnection: 'اختبار الاتصال',
+  aiUnreachable:
+    'تعذّر الوصول إلى الذكاء الاصطناعي على هذا العنوان. تأكد من:\n' +
+    '1. أن Ollama مثبت ويعمل: افتح http://localhost:11434 في المتصفح ويجب أن يظهر "Ollama is running".\n' +
+    '2. أن Ollama يسمح لهذا الموقع. ويندوز: افتح PowerShell وشغّل  setx OLLAMA_ORIGINS "*"  ثم أغلق Ollama (أيقونة شريط المهام ← Quit) وشغّله من جديد. ماك: شغّل  launchctl setenv OLLAMA_ORIGINS "*"  ثم أعد تشغيل Ollama.\n' +
+    '3. إذا سألك المتصفح عن السماح بالوصول إلى الأجهزة/التطبيقات على شبكتك المحلية فاختر "سماح" (يمكن تغييره من إعدادات الموقع بجانب شريط العنوان).\n' +
+    '4. من الهاتف: استخدم عنوان IP لجهازك بدل localhost، واضبط OLLAMA_HOST على 0.0.0.0 بنفس الطريقة.',
   connectionOk: 'تم الاتصال ✓',
   aiHelp:
     'ثبّت Ollama (مجاني) من ollama.com ثم شغّل: ollama pull qwen2.5:3b. للموقع، شغّل Ollama مع OLLAMA_ORIGINS=* ليسمح للمتصفح بالاتصال. للاستخدام من الهاتف استخدم عنوان IP لجهازك (مثل http://192.168.1.20:11434) وشغّل Ollama مع OLLAMA_HOST=0.0.0.0.',

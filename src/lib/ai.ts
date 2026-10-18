@@ -9,13 +9,26 @@ import type { AiSettings } from './store';
 
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
 
+/** Error message used when the AI server cannot be reached at all (not running, blocked, wrong address). */
+export const AI_UNREACHABLE = 'AI_UNREACHABLE';
+
+async function reach(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (e) {
+    // Browsers only say "Failed to fetch" for a server that is off, blocked by CORS or by local-network rules.
+    if (e instanceof Error && e.name === 'AbortError') throw e;
+    throw new Error(AI_UNREACHABLE);
+  }
+}
+
 async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<string> {
   const base = ai.baseUrl.replace(/\/$/, '');
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 180_000);
   try {
     if (ai.provider === 'ollama') {
-      const res = await fetch(`${base}/api/chat`, {
+      const res = await reach(`${base}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -31,7 +44,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
       const data = await res.json();
       return data.message?.content ?? '';
     }
-    const res = await fetch(`${base}/chat/completions`, {
+    const res = await reach(`${base}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +69,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
 export async function testConnection(ai: AiSettings): Promise<string> {
   const base = ai.baseUrl.replace(/\/$/, '');
   const url = ai.provider === 'ollama' ? `${base}/api/tags` : `${base}/models`;
-  const res = await fetch(url, { headers: ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {} });
+  const res = await reach(url, { headers: ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {} });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   const names: string[] = (data.models ?? data.data ?? []).map((m: { name?: string; id?: string }) => m.name ?? m.id ?? '');

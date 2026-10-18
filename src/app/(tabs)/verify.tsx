@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { HitCard } from '../../components/HitCard';
-import { Button, C, Card, English, ErrorBox, Input, Loading, Row, Screen, T } from '../../components/ui';
+import { Button, C, Card, English, ErrorBox, errorText, Input, Loading, Row, Screen, T } from '../../components/ui';
 import { verify, type Verdict, type VerifyResult } from '../../lib/ai';
 import { useStore } from '../../lib/store';
 import { hasArabic } from '../../lib/text';
@@ -44,7 +44,7 @@ export default function VerifyScreen() {
       try {
         setResult(await verify(c, replyLang, ai));
       } catch (e) {
-        setAiError(e instanceof Error ? e.message : String(e));
+        setAiError(errorText(e, t));
         setResult(await verify(c, replyLang, null));
       }
     } catch (e) {

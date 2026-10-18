@@ -136,12 +136,18 @@ export function Loading({ label }: { label?: string }) {
   );
 }
 
+/** Readable text for an error, with step-by-step help when the AI server cannot be reached. */
+export function errorText(error: unknown, t: (k: 'aiUnreachable') => string): string {
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg === 'AI_UNREACHABLE' ? t('aiUnreachable') : msg;
+}
+
 export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const { t } = useStore();
   return (
     <Card style={{ backgroundColor: C.dangerSoft, borderColor: C.dangerSoft }}>
       <T bold>{t('error')}</T>
-      <T muted>{error instanceof Error ? error.message : String(error)}</T>
+      <T muted>{errorText(error, t)}</T>
       {onRetry && <Button title={t('retry')} onPress={onRetry} kind="secondary" small />}
     </Card>
   );

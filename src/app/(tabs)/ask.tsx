@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { HitCard } from '../../components/HitCard';
-import { Button, C, Card, English, Input, Loading, Row, Screen, T } from '../../components/ui';
+import { Button, C, Card, English, errorText, Input, Loading, Row, Screen, T } from '../../components/ui';
 import { ask, retrieve } from '../../lib/ai';
 import type { Hit } from '../../lib/search';
 import { useStore } from '../../lib/store';
@@ -30,7 +30,7 @@ export default function AskScreen() {
     } catch (e) {
       // AI not reachable: still show what the library has.
       const sources = await retrieve(q).catch(() => []);
-      reply = { role: 'assistant', text: '', sources, cited: [], offline: e instanceof Error ? e.message : String(e) };
+      reply = { role: 'assistant', text: '', sources, cited: [], offline: errorText(e, t) };
     }
     setTurns((prev) => [...prev, reply]);
     setBusy(false);
