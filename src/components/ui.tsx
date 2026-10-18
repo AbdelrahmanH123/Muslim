@@ -69,10 +69,15 @@ export function English({ children, style }: { children: ReactNode; style?: Styl
 }
 
 export function Screen({ children, scroll = true, style }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle> }) {
-  const inner = <View style={[styles.inner, style]}>{children}</View>;
   return (
     <View style={styles.screen}>
-      {scroll ? <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{inner}</ScrollView> : inner}
+      {scroll ? (
+        <ScrollView contentContainerStyle={[styles.inner, style]} keyboardShouldPersistTaps="handled">
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={[styles.inner, { flex: 1 }, style]}>{children}</View>
+      )}
     </View>
   );
 }
@@ -222,7 +227,9 @@ export function LinkCard({ href, children }: { href: string; children: ReactNode
 
 export const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
-  inner: { flex: 1, width: '100%', maxWidth: 820, alignSelf: 'center', padding: 16, gap: 12 },
+  // No flex: 1 here: inside a ScrollView/FlatList it would cap the content at the screen height on Android,
+  // so long tafsir or a full surah could not be scrolled.
+  inner: { width: '100%', maxWidth: 820, alignSelf: 'center', padding: 16, paddingBottom: 32, gap: 12 },
   card: { backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 14, gap: 8 },
   button: { paddingVertical: 11, paddingHorizontal: 18, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   buttonSmall: { paddingVertical: 7, paddingHorizontal: 12 },

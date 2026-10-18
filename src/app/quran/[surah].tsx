@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { favoriteFromHit } from '../../components/HitCard';
 import { Arabic, Button, C, Card, Chip, English, ErrorBox, Loading, Row, SaveButton, T, styles } from '../../components/ui';
@@ -15,6 +15,9 @@ export default function SurahScreen() {
   const [quran, setQuran] = useState<Quran | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [showAll, setShowAll] = useState(!focus);
+  // Where the list starts: the ayah the user came from (reading continues from there), or the beginning.
+  const [from, setFrom] = useState(focus ?? 1);
+  const list = useRef<FlatList<Ayah>>(null);
 
   useEffect(() => {
     loadQuran().then(setQuran, setError);
@@ -33,18 +36,30 @@ export default function SurahScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ title: lang === 'ar' ? surah.ar : surah.tr }} />
       <FlatList
-        data={showAll ? ayat : []}
+        ref={list}
+        data={showAll ? ayat.slice(from - 1) : []}
         keyExtractor={(a) => `${a.s}:${a.a}`}
-        contentContainerStyle={[styles.inner, { flexGrow: 1 }]}
+        contentContainerStyle={styles.inner}
         initialNumToRender={12}
+        windowSize={11}
         ListHeaderComponent={
           <View style={{ gap: 12 }}>
             <Card style={{ alignItems: 'center' }}>
               <Arabic size={28} style={{ textAlign: 'center' }}>{surah.ar}</Arabic>
               <T muted style={{ textAlign: 'center' }}>{title} · {surah.count} {t('ayah')} · {surah.rev}</T>
             </Card>
-            {focused && <AyahCard ayah={focused} quran={quran} highlight />}
+            {focused && !showAll && <AyahCard ayah={focused} quran={quran} highlight />}
             {!showAll && <Button kind="secondary" title={t('openSurah')} onPress={() => setShowAll(true)} />}
+            {showAll && from > 1 && (
+              <Button
+                kind="secondary"
+                title={t('showFromStart', { n: from - 1 })}
+                onPress={() => {
+                  setFrom(1);
+                  list.current?.scrollToOffset({ offset: 0, animated: false });
+                }}
+              />
+            )}
           </View>
         }
         renderItem={({ item }) => <AyahCard ayah={item} quran={quran} highlight={item.a === focus} />}
