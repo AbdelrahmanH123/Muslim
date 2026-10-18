@@ -109,16 +109,16 @@ export async function search(query: string, opts: SearchOptions = {}): Promise<H
 
 const kindOrder = (h: Hit) => (h.kind === 'quran' ? 0 : h.kind === 'hisn' ? 1 : 2);
 
-// "2:255", "Bukhari 6405", "muslim 2699"
+// "2:255", "Bukhari 6405", "muslim 2699", "Muslim 3033 b"
 type Ref = { kind: 'quran'; s: number; a: number } | { kind: 'hadith'; col: string; n: string };
 function parseReference(q: string): Ref | null {
   const m = q.trim().match(/^(\d{1,3})\s*[:.]\s*(\d{1,3})$/);
   if (m) return { kind: 'quran', s: +m[1], a: +m[2] };
-  const h = q.trim().toLowerCase().match(/^([a-z' -]+?)\s*#?\s*(\d+(?:\.\d+)?)$/);
+  const h = q.trim().toLowerCase().match(/^([a-z' -]+?)\s*#?\s*(\d+)\s*([a-z]{0,2})$/);
   if (h) {
     const name = h[1].replace(/[^a-z]/g, '');
     const col = COLLECTIONS.find((c) => name.length >= 4 && (c.id.startsWith(name) || name.startsWith(c.id)));
-    if (col) return { kind: 'hadith', col: col.id, n: h[2] };
+    if (col) return { kind: 'hadith', col: col.id, n: h[2] + h[3] };
   }
   return null;
 }

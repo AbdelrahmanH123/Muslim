@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { favoriteFromHit } from '../../../components/HitCard';
 import { Arabic, C, Card, English, ErrorBox, GradeBadge, Loading, Row, SaveButton, Screen, T } from '../../../components/ui';
 import { loadCollection, type Collection } from '../../../lib/data';
+import { hadithRef } from '../../../lib/format';
 import { hadithGrade } from '../../../lib/grades';
 import { useStore } from '../../../lib/store';
 
@@ -22,7 +23,7 @@ export default function HadithScreen() {
   const h = collection.byNumber.get(String(num));
   if (!h) return <Screen><T>Not found</T></Screen>;
   const level = hadithGrade(h);
-  const title = `${collection.name[lang]} ${h.n}`;
+  const title = hadithRef(col, h.n, lang);
   const book = collection.sections[String(h.book)];
 
   return (
@@ -69,7 +70,7 @@ export default function HadithScreen() {
       ) : null}
       <View>
         <T muted size={12}>
-          {t('reference')}: {collection.name.en} {h.n} · fawazahmed0/hadith-api
+          {t('reference')}: {hadithRef(col, h.n, 'en')} · fawazahmed0/hadith-api, Sunnah.com
         </T>
       </View>
     </Screen>

@@ -109,7 +109,7 @@ const en = {
     'Install Ollama (free) from ollama.com, then run: ollama pull qwen2.5:3b. For the website, start Ollama with OLLAMA_ORIGINS=* so the browser may talk to it. To use it from your phone, use your computer’s IP address (e.g. http://192.168.1.20:11434) and start Ollama with OLLAMA_HOST=0.0.0.0.',
   about: 'About & sources',
   aboutText:
-    'Quran text: Tanzil Project (Uthmani, Hafs). English translation: Rowwad Translation Center (quranenc.com). Tafsir al-Muyassar (King Fahd Quran Complex) and Tafsir al-Jalalayn. Hadith and gradings: fawazahmed0/hadith-api (from Sunnah.com sources). Hisn al-Muslim by Sa‘id ibn ‘Ali ibn Wahf al-Qahtani. This app is a study aid, not a source of fatwa.',
+    'Quran text: King Fahd Glorious Quran Printing Complex (Madinah Mushaf, Hafs). English translation: Rowwad Translation Center (quranenc.com). Tafsir al-Muyassar (King Fahd Complex) and Tafsir al-Jalalayn. Hadith: fawazahmed0/hadith-api, with numbers and gradings checked against Sunnah.com. Hisn al-Muslim by Sa‘id ibn ‘Ali ibn Wahf al-Qahtani. The library is regularly checked against these sources (see docs/VERIFICATION.md). This app is a study aid, not a source of fatwa.',
 };
 
 export type StringKey = keyof typeof en;
@@ -222,7 +222,7 @@ const ar: Partial<Record<StringKey, string>> = {
     'ثبّت Ollama (مجاني) من ollama.com ثم شغّل: ollama pull qwen2.5:3b. للموقع، شغّل Ollama مع OLLAMA_ORIGINS=* ليسمح للمتصفح بالاتصال. للاستخدام من الهاتف استخدم عنوان IP لجهازك (مثل http://192.168.1.20:11434) وشغّل Ollama مع OLLAMA_HOST=0.0.0.0.',
   about: 'حول التطبيق والمصادر',
   aboutText:
-    'نص القرآن: مشروع تنزيل (الرسم العثماني، رواية حفص). الترجمة الإنجليزية: مركز رواد الترجمة. التفسير الميسر (مجمع الملك فهد) وتفسير الجلالين. الأحاديث والأحكام: fawazahmed0/hadith-api. حصن المسلم لسعيد بن علي بن وهف القحطاني. هذا التطبيق وسيلة للتعلّم وليس مصدرًا للفتوى.',
+    'نص القرآن: مجمع الملك فهد لطباعة المصحف الشريف (مصحف المدينة، رواية حفص). الترجمة الإنجليزية: مركز رواد الترجمة. التفسير الميسر (مجمع الملك فهد) وتفسير الجلالين. الأحاديث: fawazahmed0/hadith-api مع مطابقة الأرقام والأحكام مع موقع Sunnah.com. حصن المسلم لسعيد بن علي بن وهف القحطاني. هذا التطبيق وسيلة للتعلّم وليس مصدرًا للفتوى.',
 };
 
 export const STRINGS: Record<'en' | 'ar', Partial<Record<StringKey, string>>> = { en, ar };

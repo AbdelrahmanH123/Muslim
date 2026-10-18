@@ -14,7 +14,8 @@ export type Quran = { surahs: Surah[]; ayat: Ayah[]; source: { arabic: string; e
 export type Grade = [by: string, grade: string];
 export type Hadith = {
   col: string;
-  n: number;
+  /** Hadith number as cited on Sunnah.com (e.g. "6405", "3033b", "546b-d"); "i8" = Sahih Muslim, Introduction 8; "u3" = no standard number. */
+  n: string;
   book: number;
   en: string;
   ar: string;
@@ -121,11 +122,11 @@ export function loadCollection(id: string): Promise<Collection> {
       name: Bilingual;
       sahih: boolean;
       sections: Record<string, string>;
-      hadiths: [number, number, string, string, string, Grade[]][];
+      hadiths: [string | number, number, string, string, string, Grade[]][];
     }>(`hadith/${id}.json`);
     const hadiths = raw.hadiths.map(([n, book, en, ar, narrator, grades]) => ({
       col: id,
-      n,
+      n: String(n),
       book,
       en,
       ar,
@@ -133,7 +134,7 @@ export function loadCollection(id: string): Promise<Collection> {
       grades,
       norm: normalize(en + ' ' + ar),
     }));
-    return { ...raw, hadiths, byNumber: new Map(hadiths.map((h) => [String(h.n), h])) };
+    return { ...raw, hadiths, byNumber: new Map(hadiths.map((h) => [h.n, h])) };
   });
 }
 

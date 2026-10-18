@@ -2,6 +2,14 @@ import { collectionInfo, type Lang } from './data';
 import { hadithGrade, type GradeLevel } from './grades';
 import type { Hit } from './search';
 
+/** "Sahih Muslim 3033b"; "i8" = Introduction 8 (Sunnah.com numbering); "u3" = entry without a standard number. */
+export function hadithRef(col: string, n: string, lang: Lang): string {
+  const name = collectionInfo(col)?.name[lang] ?? col;
+  if (n.startsWith('i')) return lang === 'ar' ? `${name}، المقدمة ${n.slice(1)}` : `${name}, Introduction ${n.slice(1)}`;
+  if (n.startsWith('u')) return lang === 'ar' ? `${name} (بدون رقم معتمد)` : `${name} (no standard number)`;
+  return `${name} ${n.replace(/,/g, ', ')}`;
+}
+
 /** Human readable reference, e.g. "Quran 2:255 (Al-Baqarah)" or "Sahih al-Bukhari 6405". */
 export function hitTitle(hit: Hit, lang: Lang): string {
   if (hit.kind === 'quran') {
@@ -14,8 +22,7 @@ export function hitTitle(hit: Hit, lang: Lang): string {
     const name = lang === 'ar' ? hit.chapter.ar : hit.chapter.en || hit.chapter.ar;
     return lang === 'ar' ? `حصن المسلم — ${name}` : `Hisn al-Muslim — ${name}`;
   }
-  const col = collectionInfo(hit.hadith.col);
-  return `${col ? col.name[lang] : hit.hadith.col} ${hit.hadith.n}`;
+  return hadithRef(hit.hadith.col, hit.hadith.n, lang);
 }
 
 export function hitArabic(hit: Hit): string {

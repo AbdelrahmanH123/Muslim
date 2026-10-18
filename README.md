@@ -32,14 +32,20 @@ things you heard in a lecture or video. Every answer shows its real source.
 
 | Content | Source |
 |---|---|
-| Quran (Uthmani, Hafs) | Tanzil Project, via [fawazahmed0/quran-api](https://github.com/fawazahmed0/quran-api) |
+| Quran (Uthmani, Hafs) | King Fahd Glorious Quran Printing Complex, via [quran-data-kfgqpc](https://github.com/thetruetruth/quran-data-kfgqpc) |
 | English translation | Rowwad Translation Center ([quranenc.com](https://quranenc.com/en/browse/english_rwwad)) |
 | Tafsir | Tafsir al-Muyassar (King Fahd Complex), Tafsir al-Jalalayn |
-| Hadith + gradings | Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa'i, Ibn Majah, Muwatta Malik, Nawawi 40, Hadith Qudsi, via [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api) |
+| Hadith + gradings | Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa'i, Ibn Majah, Muwatta Malik, Nawawi 40, Hadith Qudsi, via [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api), with numbers, missing hadith and gradings checked against Sunnah.com ([Jammooly1/hadiths-json-files](https://github.com/Jammooly1/hadiths-json-files)) |
 | Hisn al-Muslim (Arabic, with takhrij) | [rn0x/hisn_almuslim_json](https://github.com/rn0x/hisn_almuslim_json) |
 
 `npm run data` downloads all of these into `public/data/` (about 60 MB). The
 data is generated, not committed.
+
+## Accuracy
+
+The library is checked against independent trusted sources: the King Fahd Complex Quran text, Sunnah.com
+and a second copy of Hisn al-Muslim. Search accuracy is measured too. Results and known gaps are in
+**[docs/VERIFICATION.md](docs/VERIFICATION.md)**. Re-run it with `npm run verify`.
 
 ## Cost
 
