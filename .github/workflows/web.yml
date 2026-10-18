@@ -2,7 +2,7 @@ name: Website (GitHub Pages)
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/brave-mccarthy-f78a0b]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +25,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run lint
       - name: Download Quran, hadith and dua data
         run: npm run data
       - name: Build website

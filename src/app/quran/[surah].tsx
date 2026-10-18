@@ -58,14 +58,16 @@ export default function SurahScreen() {
 function AyahCard({ ayah, quran, highlight }: { ayah: Ayah; quran: Quran; highlight?: boolean }) {
   const { t, lang } = useStore();
   const [tafsirId, setTafsirId] = useState<string | null>(null);
-  const [tafsir, setTafsir] = useState<string | null>(null);
+  const [tafsir, setTafsir] = useState<{ id: string; text: string } | null>(null);
   const surah = quran.surahs[ayah.s - 1];
   const hit: Hit = { kind: 'quran', key: `q:${ayah.s}:${ayah.a}`, score: 1, ayah, surahName: surah };
 
   useEffect(() => {
     if (!tafsirId) return;
-    setTafsir(null);
-    loadTafsir(tafsirId).then((x) => setTafsir(x.text[ayahIndex(quran, ayah.s, ayah.a)] ?? ''), (e) => setTafsir(String(e)));
+    loadTafsir(tafsirId).then(
+      (x) => setTafsir({ id: tafsirId, text: x.text[ayahIndex(quran, ayah.s, ayah.a)] ?? '' }),
+      (e) => setTafsir({ id: tafsirId, text: String(e) }),
+    );
   }, [tafsirId, ayah, quran]);
 
   return (
@@ -93,7 +95,7 @@ function AyahCard({ ayah, quran, highlight }: { ayah: Ayah; quran: Quran; highli
               <Chip key={x.id} label={x.name[lang]} active={tafsirId === x.id} onPress={() => setTafsirId(x.id)} />
             ))}
           </Row>
-          {tafsir == null ? <Loading /> : <Arabic size={19}>{tafsir}</Arabic>}
+          {tafsir?.id !== tafsirId ? <Loading /> : <Arabic size={19}>{tafsir.text}</Arabic>}
         </View>
       )}
     </Card>

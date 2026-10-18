@@ -3,9 +3,15 @@ import { Pressable, Text } from 'react-native';
 import { C } from '../../components/ui';
 import { useStore } from '../../lib/store';
 
-const icon = (glyph: string) => ({ focused }: { focused: boolean }) => (
-  <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.55 }}>{glyph}</Text>
-);
+function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
+  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.55 }}>{glyph}</Text>;
+}
+
+function icon(glyph: string) {
+  return function Icon({ focused }: { focused: boolean }) {
+    return <TabIcon glyph={glyph} focused={focused} />;
+  };
+}
 
 export default function TabsLayout() {
   const { t } = useStore();

@@ -4,7 +4,7 @@ name: Android APK
 # Download it from the run's "Artifacts" section.
 on:
   push:
-    branches: [main]
+    branches: [main, claude/brave-mccarthy-f78a0b]
   workflow_dispatch:
 
 jobs:
