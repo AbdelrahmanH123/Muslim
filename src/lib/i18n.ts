@@ -178,6 +178,8 @@ const en = {
     'Ollama is running, but it is blocking this website. Allow it once (Windows, PowerShell):\n' +
     '  setx OLLAMA_ORIGINS "*"\n' +
     'then quit Ollama (taskbar icon → Quit), start it again and press Test connection.\n' +
+    'Still blocked? The old Ollama is still running: end every "ollama" task in Task Manager, close all PowerShell windows, then start Ollama from the Start menu. ' +
+    'In a NEW PowerShell window,  echo $env:OLLAMA_ORIGINS  must print *. Restarting the computer also works.\n' +
     '(Mac: launchctl setenv OLLAMA_ORIGINS "*" and restart Ollama.)',
   aiBadKey: 'The server refused the API key. Check that you pasted the whole key (it should have no spaces) and that it is still active.',
   connectionOk: 'Connected ✓',
@@ -367,6 +369,8 @@ const ar: Partial<Record<StringKey, string>> = {
     'Ollama يعمل لكنه يمنع هذا الموقع. اسمح له مرة واحدة (ويندوز، PowerShell):\n' +
     '  setx OLLAMA_ORIGINS "*"\n' +
     'ثم أغلق Ollama (أيقونة شريط المهام ← Quit) وشغّله من جديد واضغط اختبار الاتصال.\n' +
+    'ما زال محظورًا؟ نسخة Ollama القديمة ما زالت تعمل: أنهِ كل مهام "ollama" من مدير المهام، وأغلق كل نوافذ PowerShell، ثم شغّل Ollama من قائمة ابدأ. ' +
+    'في نافذة PowerShell جديدة يجب أن يطبع الأمر  echo $env:OLLAMA_ORIGINS  الرمز *. إعادة تشغيل الكمبيوتر تحل المشكلة أيضًا.\n' +
     '(ماك: launchctl setenv OLLAMA_ORIGINS "*" ثم أعد تشغيل Ollama.)',
   aiBadKey: 'رفض الخادم مفتاح API. تأكد من نسخ المفتاح كاملًا بدون مسافات وأنه ما زال فعّالًا.',
   connectionOk: 'تم الاتصال ✓',
