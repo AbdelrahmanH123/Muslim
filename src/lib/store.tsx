@@ -9,6 +9,7 @@ import { DEFAULT_PRAYER, type PrayerSettings } from './prayer';
 export type LastRead = { s: number; a: number } | null;
 
 export type AiSettings = {
+  preset?: string;
   provider: 'ollama' | 'openai';
   baseUrl: string;
   model: string;
@@ -16,6 +17,7 @@ export type AiSettings = {
 };
 
 export const DEFAULT_AI: AiSettings = {
+  preset: 'ollama-local',
   provider: 'ollama',
   baseUrl: 'http://localhost:11434',
   model: 'qwen2.5:3b',

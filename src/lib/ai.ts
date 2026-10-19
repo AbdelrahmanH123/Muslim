@@ -1,6 +1,8 @@
-// Free AI layer: talks to a local Ollama server (or any OpenAI-compatible server such as LM Studio).
+// AI layer: a local Ollama server, or any OpenAI-compatible server (LM Studio, or free cloud tiers such as Groq).
 // The model only ever sees sources from our own library and must cite them by number;
 // citations are checked against those sources before anything is shown.
+import * as Network from 'expo-network';
+import { Platform } from 'react-native';
 import type { Lang } from './data';
 import { hitForPrompt, hitGrade } from './format';
 import { isAcceptable } from './grades';
@@ -9,17 +11,42 @@ import type { AiSettings } from './store';
 
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
 
-/** Error message used when the AI server cannot be reached at all (not running, blocked, wrong address). */
-export const AI_UNREACHABLE = 'AI_UNREACHABLE';
+// Error codes shown to the user as step-by-step help (see aiError_* strings in i18n.ts).
+export const AI_ERRORS = ['AI_UNREACHABLE', 'AI_PHONE_LOCALHOST', 'AI_BLOCKED_BY_SITE', 'AI_BAD_KEY'] as const;
 
-async function reach(url: string, init?: RequestInit): Promise<Response> {
+const isLocalhost = (url: string) => /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/i.test(url);
+
+async function timeoutFetch(url: string, ms: number, init?: RequestInit) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    return await fetch(url, init);
-  } catch (e) {
-    // Browsers only say "Failed to fetch" for a server that is off, blocked by CORS or by local-network rules.
-    if (e instanceof Error && e.name === 'AbortError') throw e;
-    throw new Error(AI_UNREACHABLE);
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+/** fetch() that turns network failures into an explanation of the likely cause. */
+async function reach(ai: AiSettings, url: string, init?: RequestInit): Promise<Response> {
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') throw e;
+    // On a phone, "localhost" is the phone itself, not the computer running Ollama.
+    if (Platform.OS !== 'web' && isLocalhost(ai.baseUrl)) throw new Error('AI_PHONE_LOCALHOST');
+    if (Platform.OS === 'web') {
+      // An opaque (no-cors) request succeeds if the server is up, so a failure above means it blocked this site.
+      const up = await timeoutFetch(ai.baseUrl, 3000, { mode: 'no-cors' }).then(
+        () => true,
+        () => false,
+      );
+      if (up) throw new Error('AI_BLOCKED_BY_SITE');
+    }
+    throw new Error('AI_UNREACHABLE');
+  }
+  if (res.status === 401 || res.status === 403) throw new Error('AI_BAD_KEY');
+  return res;
 }
 
 async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<string> {
@@ -28,7 +55,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
   const timer = setTimeout(() => ctrl.abort(), 180_000);
   try {
     if (ai.provider === 'ollama') {
-      const res = await reach(`${base}/api/chat`, {
+      const res = await reach(ai, `${base}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -44,21 +71,25 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
       const data = await res.json();
       return data.message?.content ?? '';
     }
-    const res = await reach(`${base}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {}),
-      },
-      body: JSON.stringify({
-        model: ai.model,
-        messages,
-        temperature: 0.2,
-        ...(json ? { response_format: { type: 'json_object' } } : {}),
-      }),
-      signal: ctrl.signal,
-    });
-    if (!res.ok) throw new Error(`AI server error ${res.status}: ${await res.text()}`);
+    const send = (withJson: boolean) =>
+      reach(ai, `${base}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {}),
+        },
+        body: JSON.stringify({
+          model: ai.model,
+          messages,
+          temperature: 0.2,
+          ...(withJson ? { response_format: { type: 'json_object' } } : {}),
+        }),
+        signal: ctrl.signal,
+      });
+    let res = await send(json);
+    // Not every model supports JSON mode; the answer is parsed leniently anyway.
+    if (!res.ok && json && res.status === 400) res = await send(false);
+    if (!res.ok) throw new Error(`AI server error ${res.status}: ${(await res.text()).slice(0, 300)}`);
     const data = await res.json();
     return data.choices?.[0]?.message?.content ?? '';
   } finally {
@@ -66,17 +97,62 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
   }
 }
 
-export async function testConnection(ai: AiSettings): Promise<string> {
+/** Connects to the server and returns the names of the models it offers. */
+export async function testConnection(ai: AiSettings): Promise<string[]> {
   const base = ai.baseUrl.replace(/\/$/, '');
   const url = ai.provider === 'ollama' ? `${base}/api/tags` : `${base}/models`;
-  const res = await reach(url, { headers: ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {} });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const res = await reach(ai, url, { headers: ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {} });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
-  const names: string[] = (data.models ?? data.data ?? []).map((m: { name?: string; id?: string }) => m.name ?? m.id ?? '');
-  if (names.length && !names.some((n) => n === ai.model || n.startsWith(ai.model + ':') || ai.model.startsWith(n)))
-    throw new Error(`Connected, but model "${ai.model}" is not installed. Installed: ${names.join(', ')}`);
-  return names.join(', ');
+  const names: string[] = (data.models ?? data.data ?? [])
+    .map((m: { name?: string; id?: string }) => (m.id ?? m.name ?? '').replace(/^models\//, ''))
+    .filter(Boolean);
+  return names;
 }
+
+/** Looks for an Ollama server on the same Wi-Fi as this phone (it must be started with OLLAMA_HOST=0.0.0.0). */
+export async function findOllamaOnWifi(onProgress?: (done: number, total: number) => void): Promise<string | null> {
+  const ip = await Network.getIpAddressAsync().catch(() => '');
+  const m = ip.match(/^(\d+\.\d+\.\d+)\.(\d+)$/);
+  if (!m || ip === '0.0.0.0') return null;
+  const hosts = Array.from({ length: 254 }, (_, i) => `${m[1]}.${i + 1}`).filter((h) => h !== ip);
+  let done = 0;
+  let found: string | null = null;
+  const queue = [...hosts];
+  const worker = async () => {
+    while (queue.length && !found) {
+      const host = queue.shift()!;
+      const ok = await timeoutFetch(`http://${host}:11434/api/tags`, 1500).then(
+        (r) => r.ok,
+        () => false,
+      );
+      if (ok && !found) found = `http://${host}:11434`;
+      onProgress?.(++done, hosts.length);
+    }
+  };
+  await Promise.all(Array.from({ length: 32 }, worker));
+  return found;
+}
+
+export type AiPreset = {
+  id: string;
+  label: string;
+  provider: AiSettings['provider'];
+  baseUrl: string;
+  keyUrl?: string;
+  cloud?: boolean;
+  native?: boolean; // only offered in the phone app
+  freeModels?: (name: string) => boolean;
+};
+
+export const AI_PRESETS: AiPreset[] = [
+  { id: 'ollama-local', label: 'Ollama (this computer)', provider: 'ollama', baseUrl: 'http://localhost:11434' },
+  { id: 'ollama-wifi', label: 'Ollama (computer on my Wi-Fi)', provider: 'ollama', baseUrl: '', native: true },
+  { id: 'groq', label: 'Groq (free key)', provider: 'openai', baseUrl: 'https://api.groq.com/openai/v1', keyUrl: 'https://console.groq.com/keys', cloud: true },
+  { id: 'gemini', label: 'Google Gemini (free key)', provider: 'openai', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', keyUrl: 'https://aistudio.google.com/apikey', cloud: true, freeModels: (n) => /flash/i.test(n) },
+  { id: 'openrouter', label: 'OpenRouter (free models)', provider: 'openai', baseUrl: 'https://openrouter.ai/api/v1', keyUrl: 'https://openrouter.ai/keys', cloud: true, freeModels: (n) => n.endsWith(':free') },
+  { id: 'lmstudio', label: 'LM Studio', provider: 'openai', baseUrl: 'http://localhost:1234/v1' },
+];
 
 function parseJson<T>(s: string): T | null {
   try {

@@ -137,9 +137,16 @@ export function Loading({ label }: { label?: string }) {
 }
 
 /** Readable text for an error, with step-by-step help when the AI server cannot be reached. */
-export function errorText(error: unknown, t: (k: 'aiUnreachable') => string): string {
+const AI_ERROR_TEXT = {
+  AI_UNREACHABLE: 'aiUnreachable',
+  AI_PHONE_LOCALHOST: 'aiPhoneLocalhost',
+  AI_BLOCKED_BY_SITE: 'aiBlockedBySite',
+  AI_BAD_KEY: 'aiBadKey',
+} as const;
+
+export function errorText(error: unknown, t: (k: (typeof AI_ERROR_TEXT)[keyof typeof AI_ERROR_TEXT]) => string): string {
   const msg = error instanceof Error ? error.message : String(error);
-  return msg === 'AI_UNREACHABLE' ? t('aiUnreachable') : msg;
+  return msg in AI_ERROR_TEXT ? t(AI_ERROR_TEXT[msg as keyof typeof AI_ERROR_TEXT]) : msg;
 }
 
 export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => void }) {

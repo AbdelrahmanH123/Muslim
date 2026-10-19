@@ -144,22 +144,45 @@ const en = {
   aiExplanation: 'AI explanation',
 
   language: 'Language',
-  aiSettings: 'AI assistant (free, runs on your own computer)',
+  aiSettings: 'AI assistant (free)',
   provider: 'Provider',
   baseUrl: 'Server address',
   model: 'Model',
   apiKey: 'API key (only for OpenAI-compatible servers that need one)',
   save: 'Save',
   testConnection: 'Test connection',
+  aiChoose: 'Where should the AI run?',
+  aiFindComputer: '🔎 Find my computer on Wi-Fi',
+  aiSearching: 'Searching your Wi-Fi… {n}%',
+  aiFound: 'Found Ollama at {url}',
+  aiNotFound: 'No computer with Ollama was found on this Wi-Fi. Follow the steps below, then try again.',
+  aiGetKey: 'Get a free key',
+  aiCloudNote: 'Online options send your question and the library sources to that company to generate the answer. Free tiers have daily limits.',
+  aiModels: 'Models on this server (tap to use)',
+  aiNoModels: 'Connected, but no models were found. On the computer run: ollama pull qwen2.5:3b',
+  aiPickModel: 'Connected. Now pick a model below.',
   aiUnreachable:
-    'Could not reach the AI on this address. Please check:\n' +
-    '1. Ollama is installed and running: open http://localhost:11434 in your browser, it should say "Ollama is running".\n' +
-    '2. Ollama allows this website. Windows: open PowerShell, run  setx OLLAMA_ORIGINS "*"  then quit Ollama (taskbar icon → Quit) and start it again. Mac: run  launchctl setenv OLLAMA_ORIGINS "*"  and restart Ollama.\n' +
-    '3. If the browser asks to allow access to apps/devices on your local network, choose Allow (you can change it in the site settings by the address bar).\n' +
-    '4. From a phone: use your computer\'s IP address instead of localhost, and also set OLLAMA_HOST to 0.0.0.0 the same way.',
+    'Could not reach the AI at this address. Please check:\n' +
+    '1. Ollama is running on the computer: open http://localhost:11434 there; it should say "Ollama is running".\n' +
+    '2. The address is right (on a phone it must be the computer\'s address, not localhost).\n' +
+    '3. If the browser asks to allow access to apps/devices on your local network, choose Allow.\n' +
+    'Tip: if you have no computer running, choose a free online option above (Groq or Gemini).',
+  aiPhoneLocalhost:
+    'On a phone, "localhost" means the phone itself, but Ollama runs on your computer.\n' +
+    'Do this once on the computer (Windows, PowerShell):\n' +
+    '  setx OLLAMA_HOST "0.0.0.0"\n' +
+    'then quit Ollama (taskbar icon → Quit) and start it again, and allow Ollama in the Windows Firewall if asked (Private networks).\n' +
+    'Keep the phone on the same Wi-Fi, then press "Find my computer" above.\n' +
+    'No computer? Choose Groq or Gemini (free key) instead.',
+  aiBlockedBySite:
+    'Ollama is running, but it is blocking this website. Allow it once (Windows, PowerShell):\n' +
+    '  setx OLLAMA_ORIGINS "*"\n' +
+    'then quit Ollama (taskbar icon → Quit), start it again and press Test connection.\n' +
+    '(Mac: launchctl setenv OLLAMA_ORIGINS "*" and restart Ollama.)',
+  aiBadKey: 'The server refused the API key. Check that you pasted the whole key (it should have no spaces) and that it is still active.',
   connectionOk: 'Connected ✓',
   aiHelp:
-    'Install Ollama (free) from ollama.com, then run: ollama pull qwen2.5:3b. For the website, allow it once: on Windows run  setx OLLAMA_ORIGINS "*"  in PowerShell, then quit and restart Ollama. To use it from your phone, use your computer’s IP address (e.g. http://192.168.1.20:11434) and start Ollama with OLLAMA_HOST=0.0.0.0.',
+    'Ollama setup (free): 1) install from ollama.com on your computer; 2) in PowerShell run: ollama pull qwen2.5:3b; 3) for the website run once: setx OLLAMA_ORIGINS "*"; for the phone app run once: setx OLLAMA_HOST "0.0.0.0"; 4) quit Ollama from the taskbar and start it again.',
   about: 'About & sources',
   aboutText:
     'Quran text: King Fahd Glorious Quran Printing Complex (Madinah Mushaf, Hafs). English translation: Rowwad Translation Center (quranenc.com). Tafsir al-Muyassar (King Fahd Complex) and Tafsir al-Jalalayn. Hadith: fawazahmed0/hadith-api, with numbers and gradings checked against Sunnah.com. Hisn al-Muslim by Sa‘id ibn ‘Ali ibn Wahf al-Qahtani. The library is regularly checked against these sources (see docs/VERIFICATION.md). This app is a study aid, not a source of fatwa.',
@@ -310,22 +333,45 @@ const ar: Partial<Record<StringKey, string>> = {
   aiExplanation: 'شرح الذكاء الاصطناعي',
 
   language: 'اللغة',
-  aiSettings: 'المساعد الذكي (مجاني، يعمل على جهازك)',
+  aiSettings: 'المساعد الذكي (مجاني)',
   provider: 'المزوّد',
   baseUrl: 'عنوان الخادم',
   model: 'النموذج',
   apiKey: 'مفتاح API (فقط للخوادم المتوافقة مع OpenAI التي تطلبه)',
   save: 'حفظ',
   testConnection: 'اختبار الاتصال',
+  aiChoose: 'أين يعمل الذكاء الاصطناعي؟',
+  aiFindComputer: '🔎 ابحث عن الكمبيوتر على الواي فاي',
+  aiSearching: 'جارٍ البحث في شبكتك… {n}%',
+  aiFound: 'تم العثور على Ollama على {url}',
+  aiNotFound: 'لم يُعثر على كمبيوتر يعمل عليه Ollama في هذه الشبكة. اتبع الخطوات أدناه ثم حاول مرة أخرى.',
+  aiGetKey: 'احصل على مفتاح مجاني',
+  aiCloudNote: 'الخيارات عبر الإنترنت ترسل سؤالك ومصادر المكتبة إلى تلك الشركة لتوليد الإجابة. للخطط المجانية حدود يومية.',
+  aiModels: 'النماذج المتاحة على هذا الخادم (اضغط للاختيار)',
+  aiNoModels: 'تم الاتصال لكن لا توجد نماذج. على الكمبيوتر شغّل: ollama pull qwen2.5:3b',
+  aiPickModel: 'تم الاتصال. اختر نموذجًا بالأسفل.',
   aiUnreachable:
     'تعذّر الوصول إلى الذكاء الاصطناعي على هذا العنوان. تأكد من:\n' +
-    '1. أن Ollama مثبت ويعمل: افتح http://localhost:11434 في المتصفح ويجب أن يظهر "Ollama is running".\n' +
-    '2. أن Ollama يسمح لهذا الموقع. ويندوز: افتح PowerShell وشغّل  setx OLLAMA_ORIGINS "*"  ثم أغلق Ollama (أيقونة شريط المهام ← Quit) وشغّله من جديد. ماك: شغّل  launchctl setenv OLLAMA_ORIGINS "*"  ثم أعد تشغيل Ollama.\n' +
-    '3. إذا سألك المتصفح عن السماح بالوصول إلى الأجهزة/التطبيقات على شبكتك المحلية فاختر "سماح" (يمكن تغييره من إعدادات الموقع بجانب شريط العنوان).\n' +
-    '4. من الهاتف: استخدم عنوان IP لجهازك بدل localhost، واضبط OLLAMA_HOST على 0.0.0.0 بنفس الطريقة.',
+    '1. أن Ollama يعمل على الكمبيوتر: افتح http://localhost:11434 عليه ويجب أن يظهر "Ollama is running".\n' +
+    '2. أن العنوان صحيح (على الهاتف يجب أن يكون عنوان الكمبيوتر وليس localhost).\n' +
+    '3. إذا سألك المتصفح عن السماح بالوصول إلى أجهزة الشبكة المحلية فاختر "سماح".\n' +
+    'نصيحة: إن لم يكن لديك كمبيوتر يعمل، اختر خيارًا مجانيًا عبر الإنترنت بالأعلى (Groq أو Gemini).',
+  aiPhoneLocalhost:
+    'على الهاتف، "localhost" تعني الهاتف نفسه، بينما Ollama يعمل على الكمبيوتر.\n' +
+    'نفّذ هذا مرة واحدة على الكمبيوتر (ويندوز، PowerShell):\n' +
+    '  setx OLLAMA_HOST "0.0.0.0"\n' +
+    'ثم أغلق Ollama (أيقونة شريط المهام ← Quit) وشغّله من جديد، واسمح له في جدار حماية ويندوز إذا طُلب (الشبكات الخاصة).\n' +
+    'اجعل الهاتف على نفس شبكة الواي فاي ثم اضغط "ابحث عن الكمبيوتر" بالأعلى.\n' +
+    'لا يوجد كمبيوتر؟ اختر Groq أو Gemini (مفتاح مجاني).',
+  aiBlockedBySite:
+    'Ollama يعمل لكنه يمنع هذا الموقع. اسمح له مرة واحدة (ويندوز، PowerShell):\n' +
+    '  setx OLLAMA_ORIGINS "*"\n' +
+    'ثم أغلق Ollama (أيقونة شريط المهام ← Quit) وشغّله من جديد واضغط اختبار الاتصال.\n' +
+    '(ماك: launchctl setenv OLLAMA_ORIGINS "*" ثم أعد تشغيل Ollama.)',
+  aiBadKey: 'رفض الخادم مفتاح API. تأكد من نسخ المفتاح كاملًا بدون مسافات وأنه ما زال فعّالًا.',
   connectionOk: 'تم الاتصال ✓',
   aiHelp:
-    'ثبّت Ollama (مجاني) من ollama.com ثم شغّل: ollama pull qwen2.5:3b. للموقع، شغّل Ollama مع OLLAMA_ORIGINS=* ليسمح للمتصفح بالاتصال. للاستخدام من الهاتف استخدم عنوان IP لجهازك (مثل http://192.168.1.20:11434) وشغّل Ollama مع OLLAMA_HOST=0.0.0.0.',
+    'إعداد Ollama (مجاني): 1) ثبّته من ollama.com على الكمبيوتر؛ 2) في PowerShell شغّل: ollama pull qwen2.5:3b؛ 3) للموقع شغّل مرة واحدة: setx OLLAMA_ORIGINS "*" وللتطبيق على الهاتف: setx OLLAMA_HOST "0.0.0.0"؛ 4) أغلق Ollama من شريط المهام وشغّله من جديد.',
   about: 'حول التطبيق والمصادر',
   aboutText:
     'نص القرآن: مجمع الملك فهد لطباعة المصحف الشريف (مصحف المدينة، رواية حفص). الترجمة الإنجليزية: مركز رواد الترجمة. التفسير الميسر (مجمع الملك فهد) وتفسير الجلالين. الأحاديث: fawazahmed0/hadith-api مع مطابقة الأرقام والأحكام مع موقع Sunnah.com. حصن المسلم لسعيد بن علي بن وهف القحطاني. هذا التطبيق وسيلة للتعلّم وليس مصدرًا للفتوى.',
