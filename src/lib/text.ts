@@ -43,6 +43,39 @@ export function terms(query: string, keepStopwords = false): string[] {
   return [...new Set(kept.length ? kept : words)];
 }
 
+// Words that say what a question is asking for, not what it is about ("which ayah mentions the dog?").
+// Ranked search (Ask and Verify) ignores them, so the subject decides the results. Compared after stem().
+const QUESTION_WORDS = new Set(
+  (
+    'talk talking speak speaking mention mentioned mentioning tell explain meaning mean regarding concerning related ' +
+    'topic subject thing anything something example there exist exactly ever also book ' +
+    'قران ايه ايات سوره سور حديث احاديث تحدث يتحدث تتحدث تكلم يتكلم موضوع بخصوص'
+  ).split(' '),
+);
+
+/** True for words that only frame a question ("mention", "verse", "القرآن"); see QUESTION_WORDS. */
+export const isQuestionWord = (stemmed: string) => QUESTION_WORDS.has(stemmed);
+
+const AR_PREFIX = /^(?:و|ف|ب|ك)?ال|^لل/;
+
+/**
+ * Loosens a normalised term for ranked search, which matches by substring: English plurals become singular
+ * ("dogs" -> "dog", "mercies" -> "merc") and the Arabic article is dropped ("الكلب"/"والكلب" -> "كلب"),
+ * so a question finds texts that use another form of the same word.
+ */
+export function stem(t: string): string {
+  if (/^[a-z]+$/.test(t)) {
+    // The result must stay a substring of both forms, because matching is by substring.
+    if (t.endsWith('ies')) return t.length >= 7 ? t.slice(0, -3) : t;
+    if (/(sh|ch|x|ss)es$/.test(t)) return t.slice(0, -2);
+    if (t.length > 3 && t.endsWith('s') && !/(ss|us|is)$/.test(t)) return t.slice(0, -1);
+    return t;
+  }
+  if (t.startsWith('الله') || t.startsWith('لله')) return t;
+  const bare = t.replace(AR_PREFIX, '');
+  return bare.length >= 3 ? bare : t;
+}
+
 export function snippet(text: string, query: string, len = 220): string {
   const clean = text.replace(/\s+/g, ' ').trim();
   if (clean.length <= len) return clean;

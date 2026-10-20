@@ -131,5 +131,51 @@ const realDuas = Object.values(az).flat().filter((z) => words(z.zekr).length >= 
 const embellished = pick(realDuas, 40).map((z, i) => `${words(z.zekr).slice(0, 12).join(' ')} ${['مائة مرة', 'سبعين مرة'][i % 2]} ${['ليلة الثلاثاء', 'بعد العصر'][i % 2]} ${['يرزقه الله زوجة صالحة', 'يقضي الله دينه في أسبوع', 'لا يمرض أبدا'][i % 3]}`);
 report.verify_real_dua_with_invented_reward = await verdicts('Verify: real dua + invented reward (should be "partial")', embellished, (v) => v === 'partial');
 
+// ---- Ask / Verify: questions about a subject ("Which ayah talks about the dog?") -> EVERY ayah that mentions it.
+// The right answer comes from the data: all ayat whose English translation contains the word (only words found in 1-8 ayat).
+// "with AI keywords" passes the keywords a model is asked to give (the word in English and Arabic), as ask() does.
+const quranData = read(path.join(ROOT, 'public/data/quran.json')).ayat as [number, number, string, string, string][];
+const SUBJECTS: [string, string][] = [
+  ['dog', 'كلب'], ['spider', 'عنكبوت'], ['ant', 'نمل'], ['bee', 'نحل'], ['elephant', 'فيل'], ['crow', 'غراب'], ['mosquito', 'بعوضه'],
+  ['wolf', 'ذئب'], ['hoopoe', 'هدهد'], ['fig', 'تين'], ['olive', 'زيتون'], ['honey', 'عسل'], ['swine', 'خنزير'], ['donkey', 'حمار'],
+  ['whale', 'حوت'], ['iron', 'حديد'], ['ginger', 'زنجبيل'], ['cow', 'بقره'], ['frog', 'ضفادع'], ['locust', 'جراد'], ['lice', 'قمل'],
+  ['pearl', 'لؤلؤ'], ['pomegranate', 'رمان'], ['grape', 'عنب'], ['onion', 'بصل'], ['lentil', 'عدس'], ['snake', 'حيه'], ['fly', 'ذباب'],
+  ['ape', 'قرده'], ['sheep', 'غنم'], ['horse', 'خيل'], ['fish', 'حوت'], ['cave', 'كهف'],
+];
+const TEMPLATES = [
+  (w: string) => `Which ayah talks about the ${w}?`,
+  (w: string) => `Is there a verse in the Quran that mentions ${w}s?`,
+  (w: string) => `Where is the ${w} mentioned in the Quran and what does it say?`,
+  (_: string, ar: string) => `هل ذكر ال${ar} في القرآن؟`,
+  (_: string, ar: string) => `ما هي الآيات التي تتحدث عن ال${ar}`,
+];
+async function subjects(name: string, withKeywords: boolean) {
+  let cases = 0;
+  let allFound = 0;
+  let found = 0;
+  let wanted = 0;
+  const misses: string[] = [];
+  for (const [en, ar] of SUBJECTS) {
+    const re = new RegExp(`\\b${en}(s|es)?\\b`, 'i');
+    const truth = quranData.filter((x) => re.test(x[4])).map((x) => `q:${x[0]}:${x[1]}`);
+    if (truth.length < 1 || truth.length > 8) continue;
+    for (const tpl of TEMPLATES) {
+      const question = tpl(en, ar);
+      const got = new Set((await retrieve(question, withKeywords ? { boost: `${en} ${ar}` } : {})).map((h) => h.key));
+      const n = truth.filter((k) => got.has(k)).length;
+      cases++;
+      found += n;
+      wanted += truth.length;
+      if (n === truth.length) allFound++;
+      else if (misses.length < 8) misses.push(`${question} (${n}/${truth.length})`);
+    }
+  }
+  const r = { cases, all_ayat_found_pct: Math.round((1000 * allFound) / cases) / 10, ayat_recall_pct: Math.round((1000 * found) / wanted) / 10, example_misses: misses };
+  console.error(`${name}: every ayah found in ${r.all_ayat_found_pct}% of questions, ${r.ayat_recall_pct}% of ayat found`);
+  return r;
+}
+report.ask_subject_with_ai_keywords = await subjects('Ask: subject questions, with AI keywords', true);
+report.ask_subject_without_ai = await subjects('Ask: subject questions, without AI', false);
+
 writeFileSync(path.join(HERE, 'search_report.json'), JSON.stringify(report, null, 1));
 console.log(JSON.stringify(report, null, 1));

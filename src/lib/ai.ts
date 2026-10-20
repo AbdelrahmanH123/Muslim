@@ -8,6 +8,7 @@ import type { Lang } from './data';
 import { hitForPrompt, hitGrade } from './format';
 import { isAcceptable } from './grades';
 import { search, type Hit } from './search';
+import { normalize } from './text';
 import type { AiSettings } from './store';
 
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
@@ -66,7 +67,8 @@ async function complete(ai: AiSettings, messages: Msg[], json: boolean | Record<
           messages,
           stream: false,
           ...(json ? { format: typeof json === 'object' ? json : 'json' } : {}),
-          options: { temperature: 0.2 },
+          // Ollama's default context is small; the numbered sources need room or they are silently cut off.
+          options: { temperature: 0.2, num_ctx: 8192 },
         }),
         signal: ctrl.signal,
       });
@@ -186,8 +188,11 @@ function parseJson<T>(s: string): T | null {
   }
 }
 
-/** Asks the model for search keywords in both languages (the library is bilingual). */
-async function keywords(ai: AiSettings, text: string): Promise<string> {
+/**
+ * Asks the model for search keywords in both languages (the library is bilingual).
+ * `context` is the previous question, so follow-ups like "and what does it say?" still find the right texts.
+ */
+async function keywords(ai: AiSettings, text: string, context?: string): Promise<string> {
   try {
     const out = await complete(
       ai,
@@ -195,31 +200,66 @@ async function keywords(ai: AiSettings, text: string): Promise<string> {
         {
           role: 'system',
           content:
-            'You turn a question about Islam into search keywords for a library of Quran verses, hadith and duas. ' +
-            'Reply ONLY with JSON: {"en": ["..."], "ar": ["..."]}. Give 2-5 short keywords in English and 2-5 in Arabic ' +
-            '(no diacritics). Use words likely to appear in the actual texts (e.g. "debt", "دين", "رزق", "provision").',
+            'You turn a question about Islam into search keywords for a library of Quran verses (Arabic + English translation), ' +
+            'hadith (Arabic + English) and duas (Arabic). Reply ONLY with JSON: {"en": ["..."], "ar": ["..."]}. ' +
+            'Give 3-6 keywords in English and 3-6 in Arabic: the specific things, people, places, acts and names the question is about, ' +
+            'as single words in their basic form (singular, Arabic without "ال" and without diacritics), plus close synonyms and the words ' +
+            'the texts themselves would use. Example: "which ayah mentions the dog of the people of the cave?" -> ' +
+            '{"en": ["dog", "cave", "sleepers"], "ar": ["كلب", "كهف", "رقيم"]}. ' +
+            'Never use generic words like Quran, ayah, verse, hadith, Allah, Prophet, Islam, mention.',
         },
-        { role: 'user', content: text },
+        { role: 'user', content: context ? `Earlier question: ${context}\nQuestion: ${text}` : text },
       ],
       KEYWORDS_SCHEMA,
     );
-    const k = parseJson<{ en?: string[]; ar?: string[] }>(out);
-    return [...(k?.en ?? []), ...(k?.ar ?? [])].filter((x) => typeof x === 'string').join(' ');
+    const k = parseJson<{ en?: unknown; ar?: unknown }>(out);
+    const list = (x: unknown) => (Array.isArray(x) ? x.filter((w): w is string => typeof w === 'string') : []);
+    return [...list(k?.en), ...list(k?.ar)].join(' ');
   } catch {
     return '';
   }
 }
 
-/** Retrieves a balanced set of sources: best ayat, duas and hadith. */
-export async function retrieve(query: string, collections?: string[]): Promise<Hit[]> {
-  const [q, d, h] = await Promise.all([
-    search(query, { sources: ['quran'], mode: 'rank', limit: 3 }),
-    search(query, { sources: ['hisn'], mode: 'rank', limit: 3 }),
-    search(query, { sources: ['hadith'], collections, mode: 'rank', limit: 12 }),
+// What the question asks for decides how many results each part of the library gets.
+// (Arabic words are matched between spaces, with an optional و/ب/ال in front; normalize() pads the text with spaces.)
+const ar = (words: string) => new RegExp(` (?:و|ف|ب)?(?:ال)?(?:${words}) `);
+const WANTS_QURAN = [/\b(quran|koran|qur|ayah?|ayat|ayahs|verses?|surah?|suras?|surahs|chapter)\b/, ar('قران|ايه|ايات|سوره|سور|مصحف')];
+const WANTS_HADITH = [/\b(hadiths?|ahadith|sunnah?|narrated|narration|bukhari|tirmidhi|dawud|majah|nasai)\b/, ar('حديث|احاديث|سنه|نبي|رسول')];
+const WANTS_DUA = [/\b(duas?|duaa|supplications?|dhikr|adhkar|azkar|invocations?)\b/, ar('دعاء|ادعيه|اذكار')];
+const wants = (q: string, res: RegExp[]) => res.some((r) => r.test(q));
+
+/**
+ * Retrieves a balanced set of sources: the best ayat, duas and hadith for a question.
+ * `boost` holds extra search words (the AI's keywords); they count double, so the texts about the actual
+ * subject ("dog", "كلب") rank above texts that only share the question's wording.
+ */
+export async function retrieve(question: string, opts: { boost?: string; collections?: string[] } = {}): Promise<Hit[]> {
+  const q = normalize(question);
+  const want: Hit['kind'] | null = wants(q, WANTS_QURAN) ? 'quran' : wants(q, WANTS_HADITH) ? 'hadith' : wants(q, WANTS_DUA) ? 'hisn' : null;
+  const slots =
+    want === 'quran'
+      ? { quran: 8, hisn: 2, hadith: 2 }
+      : want === 'hadith'
+        ? { quran: 3, hisn: 2, hadith: 7 }
+        : want === 'hisn'
+          ? { quran: 3, hisn: 5, hadith: 3 }
+          : { quran: 4, hisn: 3, hadith: 4 };
+  const base = { mode: 'rank' as const, boost: opts.boost };
+  const [quran, hisn, hadith] = await Promise.all([
+    search(question, { ...base, sources: ['quran'], limit: slots.quran }),
+    search(question, { ...base, sources: ['hisn'], limit: slots.hisn }),
+    search(question, { ...base, sources: ['hadith'], collections: opts.collections, limit: 30 }),
   ]);
   // Prefer authentic hadith, but keep weak ones if they match far better (the user should see them graded).
-  const hadith = [...h].sort((a, b) => b.score + (isAcceptable(hitGrade(b)!) ? 0.15 : 0) - (a.score + (isAcceptable(hitGrade(a)!) ? 0.15 : 0))).slice(0, 4);
-  return [...q, ...d, ...hadith].filter((x) => x.score >= 0.34).sort((a, b) => b.score - a.score);
+  const bonus = (h: Hit) => h.score + (isAcceptable(hitGrade(h)!) ? 0.15 : 0);
+  const hadithBest = [...hadith].sort((a, b) => bonus(b) - bonus(a)).slice(0, slots.hadith);
+  // Keep a result only when it matches a fair part of the question, and not far less than the best one of its kind.
+  const good = (hits: Hit[]) => {
+    const top = Math.max(0, ...hits.map((h) => h.score));
+    return hits.filter((h) => h.score >= 0.25 && h.score >= top * 0.45);
+  };
+  // What was asked for comes first (ayat for "which ayah…"), then the best matches.
+  return [...good(quran), ...good(hisn), ...good(hadithBest)].sort((a, b) => Number(b.kind === want) - Number(a.kind === want) || b.score - a.score);
 }
 
 const RULES =
@@ -233,8 +273,8 @@ const RULES =
 export type AskResult = { answer: string; sources: Hit[]; cited: number[] };
 
 export async function ask(ai: AiSettings, question: string, lang: Lang, history: Msg[] = []): Promise<AskResult> {
-  const kw = await keywords(ai, question);
-  const sources = await retrieve(`${question} ${kw}`);
+  const previous = [...history].reverse().find((m) => m.role === 'user')?.content;
+  const sources = await retrieve(question, { boost: await keywords(ai, question, previous) });
   const block = sources.map((s, i) => hitForPrompt(s, i + 1)).join('\n\n') || '(no sources found)';
   const answer = await complete(ai, [
     { role: 'system', content: RULES + (lang === 'ar' ? ' Answer in Arabic.' : ' Answer in English.') },
@@ -263,8 +303,8 @@ export type VerifyResult = { verdict: Verdict; matches: Hit[]; explanation?: str
 
 /** Rule-based verdict from the best library matches (works without AI). */
 export function ruleVerdict(matches: Hit[]): Verdict {
-  const top = matches[0];
-  if (!top || top.score < 0.45) return 'not_found';
+  const top = Math.max(0, ...matches.map((m) => m.score));
+  if (top < 0.45) return 'not_found';
   const strong = matches.filter((m) => m.score >= 0.75);
   if (strong.length === 0) return 'partial';
   if (strong.some((m) => m.kind !== 'hadith' || isAcceptable(hitGrade(m)!))) return 'found';
@@ -272,10 +312,11 @@ export function ruleVerdict(matches: Hit[]): Verdict {
 }
 
 export async function verify(claim: string, lang: Lang, ai: AiSettings | null): Promise<VerifyResult> {
-  const kw = ai ? await keywords(ai, claim) : '';
-  const matches = (await retrieve(kw ? `${claim} ${kw}` : claim)).slice(0, 6);
-  const fallback = ruleVerdict(matches);
-  if (!ai) return { verdict: fallback, matches };
+  // The rule-based verdict measures how much of the claim itself is in the library, so it ignores the AI keywords.
+  const direct = await retrieve(claim);
+  const fallback = ruleVerdict(direct);
+  if (!ai) return { verdict: fallback, matches: direct };
+  const matches = await retrieve(claim, { boost: await keywords(ai, claim) });
   const block = matches.map((s, i) => hitForPrompt(s, i + 1)).join('\n\n') || '(no sources found)';
   const out = await complete(
     ai,

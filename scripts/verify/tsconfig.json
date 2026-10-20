@@ -8,6 +8,7 @@
     "baseUrl": ".",
     "paths": {
       "expo-constants": ["./shims/expo-constants.ts"],
+      "expo-network": ["./shims/expo-network.ts"],
       "react-native": ["./shims/react-native.ts"]
     }
   },

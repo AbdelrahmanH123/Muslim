@@ -9,7 +9,7 @@ import {
   type Hadith,
   type HisnChapter,
 } from './data';
-import { normalize, terms } from './text';
+import { isQuestionWord, normalize, stem, terms } from './text';
 
 export type Hit =
   | { kind: 'quran'; key: string; score: number; ayah: Ayah; surahName: { en: string; ar: string; tr: string } }
@@ -25,11 +25,25 @@ export type SearchOptions = {
   /** 'all' = every term must appear (normal search); 'rank' = best partial matches (AI and verification). */
   mode?: 'all' | 'rank';
   limit?: number;
+  /** Rank mode only: extra search words (e.g. AI keywords) that count double. */
+  boost?: string;
 };
 
 type Doc = { norm: string; make: (score: number) => Hit };
 
-async function corpus(sources: Source[], collections: string[]): Promise<Doc[]> {
+const corpusCache = new Map<string, Promise<Doc[]>>();
+function corpus(sources: Source[], collections: string[]): Promise<Doc[]> {
+  const key = `${[...sources].sort()}|${sources.includes('hadith') ? [...collections].sort() : ''}`;
+  let docs = corpusCache.get(key);
+  if (!docs) {
+    docs = buildCorpus(sources, collections);
+    docs.catch(() => corpusCache.delete(key));
+    corpusCache.set(key, docs);
+  }
+  return docs;
+}
+
+async function buildCorpus(sources: Source[], collections: string[]): Promise<Doc[]> {
   const docs: Doc[] = [];
   if (sources.includes('quran')) {
     const q = await loadQuran();
@@ -83,14 +97,34 @@ export async function search(query: string, opts: SearchOptions = {}): Promise<H
       hits.push(d.make(score));
     }
   } else {
-    // Weight each term by how rare it is, so specific words count more than common ones.
-    const df = ts.map((t) => docs.reduce((n, d) => n + (d.norm.includes(t) ? 1 : 0), 0));
-    const idf = df.map((n) => Math.log(1 + docs.length / (1 + n)));
-    const total = idf.reduce((a, b) => a + b, 0) || 1;
+    // Word forms are loosened ("dogs" -> "dog", "الكلب" -> "كلب") and each term is weighted by how rare it is,
+    // so specific words count more than common ones. Boosted words (the AI's keywords) count double.
+    const weight = new Map<string, number>();
+    const stripped = new Set<string>();
+    const loosen = (t: string) => {
+      const st = stem(t);
+      if (st !== t && !/^[a-z]/.test(t)) stripped.add(st);
+      return st;
+    };
+    const own = ts.map(loosen).filter((t) => !isQuestionWord(t));
+    for (const t of own.length ? own : ts.map(stem)) weight.set(t, 1);
+    for (const t of opts.boost ? terms(opts.boost) : []) weight.set(loosen(t), 2);
+    // English words must start a word ("ant" finds "ants", not "servant"). An Arabic word whose article was removed
+    // must start a word too, after at most و ف ب ل ك and the article ("نار" finds "النار", not "دينار").
+    const rs = [...weight.keys()];
+    const match = rs.map((t) =>
+      /^[a-z0-9]/.test(t) ? (n: string) => n.includes(' ' + t) : stripped.has(t) ? (n: string) => n.includes(t) && arabicWordStart(t).test(n) : (n: string) => n.includes(t),
+    );
+    const df = match.map((m) => docs.reduce((n, d) => n + (m(d.norm) ? 1 : 0), 0));
+    const w = rs.map((t, i) => weight.get(t)! * Math.log(1 + docs.length / (1 + df[i])));
+    const total = w.reduce((a, b) => a + b, 0) || 1;
     for (const d of docs) {
       let s = 0;
-      ts.forEach((t, i) => {
-        if (d.norm.includes(t)) s += idf[i];
+      rs.forEach((t, i) => {
+        if (!match[i](d.norm)) return;
+        // A whole English word (or its plural) counts fully; only the start of a longer word ("been" for "bee") counts half.
+        const latin = t[0] >= 'a' && t[0] <= 'z';
+        s += !latin || d.norm.includes(` ${t} `) || d.norm.includes(` ${t}s `) || d.norm.includes(` ${t}es `) ? w[i] : w[i] / 2;
       });
       if (s === 0) continue;
       let score = s / total; // 0..1 share of the query matched
@@ -106,6 +140,13 @@ export async function search(query: string, opts: SearchOptions = {}): Promise<H
   }
   return out;
 }
+
+const arabicStart = new Map<string, RegExp>();
+const arabicWordStart = (t: string) => {
+  let re = arabicStart.get(t);
+  if (!re) arabicStart.set(t, (re = new RegExp(` [وفبلك]{0,2}(?:ال)?${t}`)));
+  return re;
+};
 
 const kindOrder = (h: Hit) => (h.kind === 'quran' ? 0 : h.kind === 'hisn' ? 1 : 2);
 

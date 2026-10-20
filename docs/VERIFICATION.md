@@ -1,6 +1,6 @@
 # Verification report: does the app's library match trusted sources?
 
-**Last run:** 2026-10-18 · **How to repeat it:** `npm run data && npm run verify`
+**Last run:** 2026-10-20 · **How to repeat it:** `npm run data && npm run verify`
 
 The app's Quran, hadith, tafsir and Hisn al-Muslim data were compared against **independent references**:
 sources that were not used to build the app, wherever that was possible. Nothing was checked from memory.
@@ -74,7 +74,26 @@ with the same wording.
 |---|---|---|
 | Real Quran and Bukhari/Muslim quotes → should say **Found** | 80 | **98.8%** |
 | Made-up claims ("recite Surah X 70 times on Tuesday and you'll never be poor") → must **not** say Found | 50 | **100%**: none was confirmed |
-| Real dua + invented reward → should say **Partly matches** | 40 | 75% (the other 25% said "No source found", which is cautious but less precise) |
+| Real dua + invented reward → should say **Partly matches** | 40 | 72.5% (the others said "No source found", which is cautious but less precise; none said Found) |
+
+## "Ask" and "Verify": questions about a subject
+
+Questions like *"Which ayah talks about the dog?"* or *«هل ذكر الكلب في القرآن؟»* must bring back **every** ayah
+that mentions the subject, so the AI can answer from them. The right answers come from the data: all ayat whose
+English translation contains the word. 33 subjects (dog, spider, ant, bee, elephant, hoopoe, fig, olive, whale, cave …),
+each asked 5 ways (3 English, 2 Arabic), 165 questions.
+
+| Test | Every ayah found | Ayat found |
+|---|---|---|
+| With AI keywords (Gemini, Groq, Claude, Ollama …) | **100%** (before this fix: 58.2%) | **100%** (before: 65.5%) |
+| Without AI (the app alone) | 84.2% (before: 38.2%) | 91.1% (before: 39.4%) |
+
+Without AI the misses are other Arabic word forms (e.g. «حمير» for «حمار») or an ayah that refers to the
+subject only by a pronoun (27:22 for the hoopoe). The AI keywords cover those.
+
+What was fixed: question words ("which ayah mentions…", «القرآن») no longer drown the subject; plurals and the
+Arabic article are handled ("dogs" → dog, «الكلب» → كلب); the AI's keywords count double; up to 8 ayat are
+given to the AI when the question is about the Quran (before: 3); and Verify no longer cuts the list to 6.
 
 ## Fixes made because of this report
 
