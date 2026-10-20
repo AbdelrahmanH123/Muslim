@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { C, Loading } from '../components/ui';
 import { StoreProvider, useStore } from '../lib/store';
@@ -49,9 +50,11 @@ function Root() {
 export default function Layout() {
   return (
     <SafeAreaProvider>
-      <StoreProvider>
-        <Root />
-      </StoreProvider>
+      <KeyboardProvider>
+        <StoreProvider>
+          <Root />
+        </StoreProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

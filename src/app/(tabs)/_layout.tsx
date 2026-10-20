@@ -24,6 +24,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: C.primary,
         tabBarInactiveTintColor: C.muted,
         tabBarStyle: { backgroundColor: '#fff' },
+        // Gives the screen the room while typing, so the keyboard does not push the tab bar over the text box.
+        tabBarHideOnKeyboard: true,
         headerRight: () => (
           <Link href="/settings" asChild>
             <Pressable style={{ paddingHorizontal: 16 }} accessibilityLabel={t('settings')}>

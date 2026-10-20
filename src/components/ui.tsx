@@ -16,6 +16,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { router } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import type { GradeLevel } from '../lib/grades';
 import { useStore, type Favorite } from '../lib/store';
 
@@ -75,9 +76,17 @@ export function Screen({ children, scroll = true, style }: { children: ReactNode
   return (
     <View style={styles.screen}>
       {scroll ? (
-        <ScrollView contentContainerStyle={[styles.inner, style]} keyboardShouldPersistTaps="handled">
-          {children}
-        </ScrollView>
+        Platform.OS === 'web' ? (
+          <ScrollView contentContainerStyle={[styles.inner, style]} keyboardShouldPersistTaps="handled">
+            {children}
+          </ScrollView>
+        ) : (
+          // On the phone the keyboard would cover the text box (Ask, Verify…): this scrolls the box into view
+          // above the keyboard while typing, and the page can still be scrolled with the keyboard open.
+          <KeyboardAwareScrollView contentContainerStyle={[styles.inner, style]} keyboardShouldPersistTaps="handled" bottomOffset={24}>
+            {children}
+          </KeyboardAwareScrollView>
+        )
       ) : (
         <View style={[styles.inner, { flex: 1 }, style]}>{children}</View>
       )}
