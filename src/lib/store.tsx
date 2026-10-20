@@ -10,7 +10,7 @@ export type LastRead = { s: number; a: number } | null;
 
 export type AiSettings = {
   preset?: string;
-  provider: 'ollama' | 'openai';
+  provider: 'ollama' | 'openai' | 'anthropic';
   baseUrl: string;
   model: string;
   apiKey: string;

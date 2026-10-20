@@ -19,7 +19,7 @@ export default function SettingsScreen() {
   const preset: AiPreset | undefined = presets.find((p) => p.id === draft.preset);
 
   const choose = (p: AiPreset) => {
-    setDraft({ ...draft, preset: p.id, provider: p.provider, baseUrl: p.baseUrl || draft.baseUrl, model: p.provider === 'ollama' ? 'qwen2.5:3b' : '' });
+    setDraft({ ...draft, preset: p.id, provider: p.provider, baseUrl: p.baseUrl || draft.baseUrl, model: p.defaultModel ?? (p.provider === 'ollama' ? 'qwen2.5:3b' : '') });
     setModels(null);
     setStatus('');
     setError(null);
@@ -93,16 +93,20 @@ export default function SettingsScreen() {
         {preset?.keyUrl && (
           <>
             <Row>
-              <Button small kind="secondary" title={`🔑 ${t('aiGetKey')}`} onPress={() => Linking.openURL(preset.keyUrl!)} />
+              <Button small kind="secondary" title={`🔑 ${draft.provider === 'anthropic' ? t('aiGetKeyPaid') : t('aiGetKey')}`} onPress={() => Linking.openURL(preset.keyUrl!)} />
             </Row>
             <T bold>{t('apiKey')}</T>
             <Input value={draft.apiKey} onChangeText={(apiKey) => setDraft({ ...draft, apiKey: apiKey.trim() })} autoCapitalize="none" autoCorrect={false} secureTextEntry />
-            <T muted size={12}>{t('aiCloudNote')}</T>
+            <T muted size={12}>{draft.provider === 'anthropic' ? t('claudeNote') : t('aiCloudNote')}</T>
           </>
         )}
 
-        <T bold>{t('baseUrl')}</T>
-        <Input value={draft.baseUrl} onChangeText={(baseUrl) => setDraft({ ...draft, baseUrl: baseUrl.trim() })} autoCapitalize="none" autoCorrect={false} />
+        {draft.provider !== 'anthropic' && (
+          <>
+            <T bold>{t('baseUrl')}</T>
+            <Input value={draft.baseUrl} onChangeText={(baseUrl) => setDraft({ ...draft, baseUrl: baseUrl.trim() })} autoCapitalize="none" autoCorrect={false} />
+          </>
+        )}
         <T bold>{t('model')}</T>
         <Input value={draft.model} onChangeText={(model) => setDraft({ ...draft, model: model.trim() })} autoCapitalize="none" autoCorrect={false} />
         {models && models.length > 0 ? (

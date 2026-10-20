@@ -142,6 +142,8 @@ const AI_ERROR_TEXT = {
   AI_PHONE_LOCALHOST: 'aiPhoneLocalhost',
   AI_BLOCKED_BY_SITE: 'aiBlockedBySite',
   AI_BAD_KEY: 'aiBadKey',
+  AI_RATE_LIMIT: 'aiRateLimit',
+  AI_REFUSED: 'aiRefused',
 } as const;
 
 export function errorText(error: unknown, t: (k: (typeof AI_ERROR_TEXT)[keyof typeof AI_ERROR_TEXT]) => string): string {

@@ -3,6 +3,7 @@
 // citations are checked against those sources before anything is shown.
 import * as Network from 'expo-network';
 import { Platform } from 'react-native';
+import { claudeComplete, claudeModels, CLAUDE_DEFAULT_MODEL } from './claude';
 import type { Lang } from './data';
 import { hitForPrompt, hitGrade } from './format';
 import { isAcceptable } from './grades';
@@ -12,7 +13,7 @@ import type { AiSettings } from './store';
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
 
 // Error codes shown to the user as step-by-step help (see aiError_* strings in i18n.ts).
-export const AI_ERRORS = ['AI_UNREACHABLE', 'AI_PHONE_LOCALHOST', 'AI_BLOCKED_BY_SITE', 'AI_BAD_KEY'] as const;
+export const AI_ERRORS = ['AI_UNREACHABLE', 'AI_PHONE_LOCALHOST', 'AI_BLOCKED_BY_SITE', 'AI_BAD_KEY', 'AI_RATE_LIMIT', 'AI_REFUSED'] as const;
 
 const isLocalhost = (url: string) => /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/i.test(url);
 
@@ -49,7 +50,9 @@ async function reach(ai: AiSettings, url: string, init?: RequestInit): Promise<R
   return res;
 }
 
-async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<string> {
+/** `json`: true for any JSON reply, or a JSON schema the reply must follow. */
+async function complete(ai: AiSettings, messages: Msg[], json: boolean | Record<string, unknown> = false): Promise<string> {
+  if (ai.provider === 'anthropic') return claudeComplete(ai.apiKey, ai.model, messages, typeof json === 'object' ? json : undefined);
   const base = ai.baseUrl.replace(/\/$/, '');
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 180_000);
@@ -62,7 +65,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
           model: ai.model,
           messages,
           stream: false,
-          ...(json ? { format: 'json' } : {}),
+          ...(json ? { format: typeof json === 'object' ? json : 'json' } : {}),
           options: { temperature: 0.2 },
         }),
         signal: ctrl.signal,
@@ -86,7 +89,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
         }),
         signal: ctrl.signal,
       });
-    let res = await send(json);
+    let res = await send(!!json);
     // Not every model supports JSON mode; the answer is parsed leniently anyway.
     if (!res.ok && json && res.status === 400) res = await send(false);
     if (!res.ok) throw new Error(`AI server error ${res.status}: ${(await res.text()).slice(0, 300)}`);
@@ -99,6 +102,7 @@ async function complete(ai: AiSettings, messages: Msg[], json = false): Promise<
 
 /** Connects to the server and returns the names of the models it offers. */
 export async function testConnection(ai: AiSettings): Promise<string[]> {
+  if (ai.provider === 'anthropic') return claudeModels(ai.apiKey);
   const base = ai.baseUrl.replace(/\/$/, '');
   const url = ai.provider === 'ollama' ? `${base}/api/tags` : `${base}/models`;
   const res = await reach(ai, url, { headers: ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {} });
@@ -143,6 +147,24 @@ export type AiPreset = {
   cloud?: boolean;
   native?: boolean; // only offered in the phone app
   freeModels?: (name: string) => boolean;
+  defaultModel?: string;
+};
+
+const KEYWORDS_SCHEMA = {
+  type: 'object',
+  properties: { en: { type: 'array', items: { type: 'string' } }, ar: { type: 'array', items: { type: 'string' } } },
+  required: ['en', 'ar'],
+  additionalProperties: false,
+};
+const VERDICT_SCHEMA = {
+  type: 'object',
+  properties: {
+    verdict: { type: 'string', enum: ['found', 'weak', 'partial', 'not_found'] },
+    sources: { type: 'array', items: { type: 'integer' } },
+    explanation: { type: 'string' },
+  },
+  required: ['verdict', 'sources', 'explanation'],
+  additionalProperties: false,
 };
 
 export const AI_PRESETS: AiPreset[] = [
@@ -151,6 +173,7 @@ export const AI_PRESETS: AiPreset[] = [
   { id: 'groq', label: 'Groq (free key)', provider: 'openai', baseUrl: 'https://api.groq.com/openai/v1', keyUrl: 'https://console.groq.com/keys', cloud: true },
   { id: 'gemini', label: 'Google Gemini (free key)', provider: 'openai', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', keyUrl: 'https://aistudio.google.com/apikey', cloud: true, freeModels: (n) => /flash/i.test(n) },
   { id: 'openrouter', label: 'OpenRouter (free models)', provider: 'openai', baseUrl: 'https://openrouter.ai/api/v1', keyUrl: 'https://openrouter.ai/keys', cloud: true, freeModels: (n) => n.endsWith(':free') },
+  { id: 'claude', label: 'Claude (Anthropic API key)', provider: 'anthropic', baseUrl: 'https://api.anthropic.com', keyUrl: 'https://platform.claude.com/settings/keys', cloud: true, defaultModel: CLAUDE_DEFAULT_MODEL, freeModels: (n) => n.startsWith('claude-') },
   { id: 'lmstudio', label: 'LM Studio', provider: 'openai', baseUrl: 'http://localhost:1234/v1' },
 ];
 
@@ -178,7 +201,7 @@ async function keywords(ai: AiSettings, text: string): Promise<string> {
         },
         { role: 'user', content: text },
       ],
-      true,
+      KEYWORDS_SCHEMA,
     );
     const k = parseJson<{ en?: string[]; ar?: string[] }>(out);
     return [...(k?.en ?? []), ...(k?.ar ?? [])].filter((x) => typeof x === 'string').join(' ');
@@ -271,7 +294,7 @@ export async function verify(claim: string, lang: Lang, ai: AiSettings | null): 
       },
       { role: 'user', content: `SOURCES:\n${block}\n\nCLAIM: ${claim}` },
     ],
-    true,
+    VERDICT_SCHEMA,
   );
   const r = parseJson<{ verdict?: string; sources?: number[]; explanation?: string }>(out);
   const checked = checkCitations(r?.explanation ?? '', matches);

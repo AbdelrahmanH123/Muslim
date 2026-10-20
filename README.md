@@ -58,7 +58,7 @@ and a second copy of Hisn al-Muslim. Search accuracy is measured too. Results an
 | Part | Cost |
 |---|---|
 | Library, search, favorites | Free: static files, no server |
-| AI | Free: [Ollama](https://ollama.com) running on your own computer. Any OpenAI-compatible server (e.g. LM Studio) also works. |
+| AI | Free: [Ollama](https://ollama.com) on your own computer, or the free tiers of Groq / Google Gemini / OpenRouter. Optional paid: **Claude** with your own Anthropic API key (pay per use). |
 | Speech to text | Free: the browser's built-in speech recognition, or the Android keyboard's microphone |
 | Website hosting | Free: GitHub Pages (`.github/workflows/web.yml`) |
 | Android APK | Free: built on GitHub Actions (`.github/workflows/android.yml`). The Google Play listing is optional ($25 one-time). |
